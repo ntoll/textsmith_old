@@ -1,5 +1,5 @@
 """
-Data containers and functions to interact with the data.
+Functions for game logic.
 
 Copyright (C) 2019 Nicholas Tollervey and Andrew Smith.
 
