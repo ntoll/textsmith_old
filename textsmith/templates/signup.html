@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<section>
+    <p>Fill in the form below. We'll send you an email with a link to
+    set up your account.</p>
+    <form action="{{ url_for('signup') }}" method="post">
+        <p><label for="username">Username</label>:<br/>
+        <input type="text" name="username" autofocus></p>
+        <p><label for="email">Email</label>:<br/>
+        <input type="email" name="email"></p>
+        <p><label for="password">Password</label>:<br/>
+        <input type="password" name="password"></p>
+        <p><label for="confirm_password">Confirm Password</label>:<br/>
+        <input type="password" name="confirm_password"></p>
+        <p><input type="submit" value="Submit"></p>
+    </form>
+</section>
+{% endblock %}

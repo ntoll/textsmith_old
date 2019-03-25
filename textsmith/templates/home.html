@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<section>
+    <p>This is a game created for
+    <a href="https://pyweek.org/27/">PyWeek 27</a> by
+    <a href="https://ntoll.org">Nicholas Tollervey</a> and
+    <a href="http://www.andrewsmithauthor.com/">Andrew Smith</a>.</p>
+    <p>Instructions:</p>
+    <ol>
+        <li><a href="{{ url_for('signup') }}">Sign up</a>.</li>
+        <li>Click on the link we'll email to set up your account.</li>
+        <li><a href="{{ url_for('login') }}">Log in</a>.</li>
+        <li>Explore, create, collaborate and enjoy.</li>
+    </ol>
+    <p>The rest is explained in the game... :-)</p>
+</section>
+{% endblock %}

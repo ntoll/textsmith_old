@@ -8,9 +8,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
     <body>
-        <div id="content">
-        {% block content %}{% endblock %}
-        </div>
+        <article>
+            <h1>TextSmith</h1>
+            <p class="subtitle">Create and inhabit interactive textual
+            worlds.</p>
+            {% block content %}{% endblock %}
+        </article>
         <footer>
             &copy; 2019 Nicholas Tollervey and Andrew Smith.
         </footer>

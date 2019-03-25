@@ -1,1 +1,7 @@
+coverage
+pycodestyle
+pyflakes
+pytest
+pytest-cov
+pytest-random-order
 quart

@@ -25,8 +25,31 @@ app = Quart(__name__)
 
 
 @app.route('/')
-async def index():
-    return await render_template('index.html')
+async def home():
+    return await render_template('home.html')
+
+
+@app.route('/login')
+async def login():
+    pass
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+async def signup():
+    error = None
+    if request.method == 'POST':
+        form = await request.form
+        username = form.get('username')
+        email = form.get('email')
+        password = form.get('password')
+        confirm_password = form.get('confirm_password')
+        # TODO: Finish this.
+    return await render_template('signup.html')
+
+
+@app.route('/confirm')
+async def confirm():
+    pass
 
 
 if __name__ == '__main__':
