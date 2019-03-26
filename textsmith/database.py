@@ -84,13 +84,16 @@ def make_object(uuid, name, fqn, description, alias, owner, public,
 
 
 def make_room(uuid, name, fqn, description, alias, owner, public, contents,
-              exits, allow, exclude):
+              exits_out, exits_in, allow, exclude):
     """
     In addition to the attributes for a base object, all rooms have the
     following attributes:
 
     contents - a list of object UUIDs which this room contains.
-    exits - a list of object UUIDs which represent the exits from this room.
+    exits_out - a list of object UUIDs which represent the exits from this
+      room.
+    exits_in - a list of object UUIDs which represent the exits that have this
+      room as a destination (a cache that saves expensive lookups).
     allow - a list of usernames of people allowed to enter this room. If this
       contains items then anyone not on the list is automatically excluded.
     exclude - a list of usernames of people to exclude from this room.
@@ -101,7 +104,8 @@ def make_room(uuid, name, fqn, description, alias, owner, public, contents,
                       typeof="room")
     obj["_meta"].update({
         "contents": contents,
-        "exits": exits,
+        "exits_out": exits_out,
+        "exits_in": exits_in,
         "allow": allow,
         "exclude": exclude,
     })
@@ -109,20 +113,22 @@ def make_room(uuid, name, fqn, description, alias, owner, public, contents,
 
 
 def make_exit(uuid, name, fqn, description, alias, owner, public,
-              destination, leave_user, leave_room, arrive_room):
+              source, destination, leave_user, leave_room, arrive_room):
     """
     In addition to the attributes for a base object, all exits have the
     following attributes:
 
-    destination - the UUID of the room to which this exit takes you.
+    source - the UUID of the room FROM which this exit takes you.
+    destination - the UUID of the room TO which this exit takes you.
     leave_user - the message to relay to the user as they use the exit.
-    leave_room - the message to relay to the current room as the user leaves.
+    leave_room - the message to relay to the source room as the user leaves.
     arrive_room - the message to relay to the destination room as the user
       arrives.
     """
     obj = make_object(uuid, name, fqn, description, alias, owner, public,
                       typeof="exit")
     obj['_meta'].update({
+        "source": source,
         "destination": destination,
     })
     obj.update({

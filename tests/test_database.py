@@ -48,7 +48,7 @@ def test_make_object():
     name = "objname"
     fqn = "username/objname"
     description = "a description"
-    alias = []
+    alias = ["objalias", ]
     owner = make_uuid()
     typeof = "object"
     public = True
@@ -77,16 +77,18 @@ def test_make_room():
     name = "objname"
     fqn = "username/objname"
     description = "a description"
-    alias = []
+    alias = ["roomalias", ]
     owner = make_uuid()
     typeof = "room"
     public = True
-    contents = []
-    exits = []
-    allow = []
-    exclude = []
+    contents = [make_uuid(), ]
+    exits_out = [make_uuid(), ]
+    exits_in = [make_uuid(), ]
+    allow = [make_uuid(), ]
+    exclude = [make_uuid(), ]
     result = database.make_room(uuid, name, fqn, description, alias, owner,
-                                public, contents, exits, allow, exclude)
+                                public, contents, exits_out, exits_in, allow,
+                                exclude)
     expected = {
         "description": description,
         "alias": alias,
@@ -98,7 +100,8 @@ def test_make_room():
             "typeof": typeof,
             "public": public,
             "contents": contents,
-            "exits": exits,
+            "exits_out": exits_out,
+            "exits_in": exits_in,
             "allow": allow,
             "exclude": exclude,
         }
@@ -114,17 +117,18 @@ def test_make_exit():
     name = "objname"
     fqn = "username/objname"
     description = "a description"
-    alias = []
+    alias = ["exitalias", ]
     owner = make_uuid()
     typeof = "exit"
     public = True
+    source = make_uuid()
     destination = make_uuid()
     leave_user = "You leave."
     leave_room = "User leaves."
     arrive_room = "User arrives."
     result = database.make_exit(uuid, name, fqn, description, alias, owner,
-                                public, destination, leave_user, leave_room,
-                                arrive_room)
+                                public, source, destination, leave_user,
+                                leave_room, arrive_room)
     expected = {
         "description": description,
         "alias": alias,
@@ -138,6 +142,7 @@ def test_make_exit():
             "owner": owner,
             "typeof": typeof,
             "public": public,
+            "source": source,
             "destination": destination,
         }
     }
@@ -149,16 +154,16 @@ def test_make_user():
     Ensure the expected dictionary object is returned.
     """
     uuid = make_uuid()
-    name = "objname"
-    fqn = "username/objname"
+    name = "username"
+    fqn = "username/username"
     description = "a description"
-    alias = []
+    alias = ["Dread Pirate Roberts", ]  # ;-)
     owner = make_uuid()
     typeof = "user"
     public = True
     location = make_uuid()
-    inventory = []
-    owns = []
+    inventory = [make_uuid(), ]
+    owns = [make_uuid(), ]
     password = "password"
     email = "email@example.com"
     created_on = time.time()
