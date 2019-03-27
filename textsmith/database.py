@@ -21,6 +21,7 @@ import json
 
 USERS = {}  # Key = username, Value = object ID for user.
 OBJECTS = {}  # All objects are a UUID referencing a dictionary.
+CONNECTIONS = {}  # Key = user's uuid, Value = an open websocket connect.
 DEFAULT_DATAFILE = "database.json"  # Where to dump the database.
 
 
@@ -71,8 +72,8 @@ def make_object(uuid, name, fqn, description, alias, owner, public,
     """
     return {
         "description": description,
-        "alias": alias,
         "_meta": {
+            "alias": alias,
             "uuid": uuid,
             "name": name,
             "fqn": fqn,
@@ -84,12 +85,13 @@ def make_object(uuid, name, fqn, description, alias, owner, public,
 
 
 def make_room(uuid, name, fqn, description, alias, owner, public, contents,
-              exits_out, exits_in, allow, exclude):
+              fqns, exits_out, exits_in, allow, exclude):
     """
     In addition to the attributes for a base object, all rooms have the
     following attributes:
 
     contents - a list of object UUIDs which this room contains.
+    fqns - the fqns of objects in the room.
     exits_out - a list of object UUIDs which represent the exits from this
       room.
     exits_in - a list of object UUIDs which represent the exits that have this
@@ -104,6 +106,7 @@ def make_room(uuid, name, fqn, description, alias, owner, public, contents,
                       typeof="room")
     obj["_meta"].update({
         "contents": contents,
+        "fqns": fqns,
         "exits_out": exits_out,
         "exits_in": exits_in,
         "allow": allow,
@@ -140,7 +143,7 @@ def make_exit(uuid, name, fqn, description, alias, owner, public,
 
 
 def make_user(uuid, name, fqn, description, alias, owner, public, location,
-              inventory, owns, password, email, created_on, last_login,
+              inventory, owns, fqns, password, email, created_on, last_login,
               superuser):
     """
     In addition to the attributes for a base object, all users have the
@@ -149,6 +152,7 @@ def make_user(uuid, name, fqn, description, alias, owner, public, location,
     location - UUID of the room containing the player.
     inventory - UUIDs of objects carried by the user.
     owns - UUIDs of objects owned by the user.
+    fqns - the fqns of objects owned by the user.
     password - a hash of the password with the UUID as the salt.
     email - the user's email address (used for Gravatar too).
     created_on - timestamp of user creation.
@@ -161,6 +165,7 @@ def make_user(uuid, name, fqn, description, alias, owner, public, location,
         "location": location,
         "inventory": inventory,
         "owns": owns,
+        "fqns": fqns,
         "password": password,
         "email": email,
         "created_on": created_on,

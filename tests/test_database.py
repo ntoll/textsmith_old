@@ -21,10 +21,10 @@ def test_save_load_database():
     Ensure the database is saved and loaded as expected.
     """
     temp_file = os.path.abspath("temp_db.json")
-    user_id = add_user("test user", "a test user", "password",
+    user_id = add_user("testuser", "a test user", "password",
                        "mail@example.com")
     user = database.OBJECTS[user_id]
-    obj_id = add_object("test object", "a test object", user)
+    obj_id = add_object("testobject", "a test object", user)
     # Save the data!
     database.save_database(temp_file)
     # Delete the in-memory data.
@@ -32,7 +32,7 @@ def test_save_load_database():
     database.USERS = None
     # Load the data!
     database.load_database(temp_file)
-    assert database.USERS["test user"] == user_id
+    assert database.USERS["testuser"] == user_id
     assert len(database.OBJECTS) == 2
     assert user_id in database.OBJECTS
     assert obj_id in database.OBJECTS
@@ -56,8 +56,8 @@ def test_make_object():
                                   public, typeof)
     expected = {
         "description": description,
-        "alias": alias,
         "_meta": {
+            "alias": alias,
             "uuid": uuid,
             "name": name,
             "fqn": fqn,
@@ -82,17 +82,18 @@ def test_make_room():
     typeof = "room"
     public = True
     contents = [make_uuid(), ]
+    fqns = ["foo/bar", ]
     exits_out = [make_uuid(), ]
     exits_in = [make_uuid(), ]
     allow = [make_uuid(), ]
     exclude = [make_uuid(), ]
     result = database.make_room(uuid, name, fqn, description, alias, owner,
-                                public, contents, exits_out, exits_in, allow,
-                                exclude)
+                                public, contents, fqns, exits_out, exits_in,
+                                allow, exclude)
     expected = {
         "description": description,
-        "alias": alias,
         "_meta": {
+            "alias": alias,
             "uuid": uuid,
             "name": name,
             "fqn": fqn,
@@ -100,6 +101,7 @@ def test_make_room():
             "typeof": typeof,
             "public": public,
             "contents": contents,
+            "fqns": fqns,
             "exits_out": exits_out,
             "exits_in": exits_in,
             "allow": allow,
@@ -131,11 +133,11 @@ def test_make_exit():
                                 leave_room, arrive_room)
     expected = {
         "description": description,
-        "alias": alias,
         "leave_user": leave_user,
         "leave_room": leave_room,
         "arrive_room": arrive_room,
         "_meta": {
+            "alias": alias,
             "uuid": uuid,
             "name": name,
             "fqn": fqn,
@@ -164,18 +166,20 @@ def test_make_user():
     location = make_uuid()
     inventory = [make_uuid(), ]
     owns = [make_uuid(), ]
+    fqns = ["foo/bar", ]
     password = "password"
     email = "email@example.com"
     created_on = time.time()
     last_login = None
     superuser = False
     result = database.make_user(uuid, name, fqn, description, alias, owner,
-                                public, location, inventory, owns, password,
-                                email, created_on, last_login, superuser)
+                                public, location, inventory, owns, fqns,
+                                password, email, created_on, last_login,
+                                superuser)
     expected = {
         "description": description,
-        "alias": alias,
         "_meta": {
+            "alias": alias,
             "uuid": uuid,
             "name": name,
             "fqn": fqn,
@@ -185,6 +189,7 @@ def test_make_user():
             "location": location,
             "inventory": inventory,
             "owns": owns,
+            "fqns": fqns,
             "password": password,
             "email": email,
             "created_on": created_on,

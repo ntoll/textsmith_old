@@ -1,7 +1,9 @@
+asynctest
 coverage
 pycodestyle
 pyflakes
 pytest
+pytest-asyncio
 pytest-cov
 pytest-random-order
 quart
