@@ -274,6 +274,49 @@ def test_add_user_duplicate():
                                         "mail@example.com")
 
 
+def test_get_object_from_room_by_fqn():
+    """
+    Ensure objects with matching names or aliases are returned if they are
+    contained within the referenced room.
+    """
+    user_uuid = logic.add_user("username", "description", "password",
+                               "mail@example.com")
+    user = database.OBJECTS[user_uuid]
+    room_id = logic.add_room("roomname", "room description", user)
+    room = database.OBJECTS[room_id]
+    obj1_id = logic.add_object("obj1name", "object description", user)
+    obj2_id = logic.add_object("obj2name", "object description", user)
+    obj3_id = logic.add_object("obj3name", "object description", user)
+    obj2 = database.OBJECTS[obj2_id]
+    obj2["_meta"]["alias"].append("obj1name")  # Just for testing.
+    room["_meta"]["contents"] = [obj1_id, obj2_id, obj3_id, ]
+    result = logic.get_object_from_room("username/obj1name", room, user)
+    assert len(result) == 1
+    assert result[0]["_meta"]["uuid"] == obj1_id
+
+
+def test_get_object_from_room_by_name():
+    """
+    Ensure objects with matching names or aliases are returned if they are
+    contained within the referenced room.
+    """
+    user_uuid = logic.add_user("username", "description", "password",
+                               "mail@example.com")
+    user = database.OBJECTS[user_uuid]
+    room_id = logic.add_room("roomname", "room description", user)
+    room = database.OBJECTS[room_id]
+    obj1_id = logic.add_object("obj1name", "object description", user)
+    obj2_id = logic.add_object("obj2name", "object description", user)
+    obj3_id = logic.add_object("obj3name", "object description", user)
+    obj2 = database.OBJECTS[obj2_id]
+    obj2["_meta"]["alias"].append("obj1name")  # Just for testing.
+    room["_meta"]["contents"] = [obj1_id, obj2_id, obj3_id, ]
+    result = logic.get_object_from_room("obj1name", room, user)
+    assert len(result) == 2
+    assert result[0]["_meta"]["uuid"] == obj1_id
+    assert result[1]["_meta"]["uuid"] == obj2_id
+
+
 def test_is_owner():
     """
     The is_owner function returns True if the referenced user is the owner of
@@ -294,7 +337,7 @@ def test_is_owner():
     assert logic.is_owner(otherobj, user) is False
 
 
-def test_is_public_superuser():
+def test_is_visible_superuser():
     """
     Returns True if the user is a superuser.
     """
@@ -307,10 +350,10 @@ def test_is_public_superuser():
     otheruser["_meta"]["superuser"] = True
     new_uuid = logic.add_object("objectname", "object description", user)
     new_obj = database.OBJECTS[new_uuid]
-    assert logic.is_public(new_obj, otheruser) is True
+    assert logic.is_visible(new_obj, otheruser) is True
 
 
-def test_is_public_owner():
+def test_is_visible_owner():
     """
     Returns True if the user is the object's owner.
     """
@@ -319,10 +362,10 @@ def test_is_public_owner():
     user = database.OBJECTS[user_uuid]
     new_uuid = logic.add_object("objectname", "object description", user)
     new_obj = database.OBJECTS[new_uuid]
-    assert logic.is_public(new_obj, user) is True
+    assert logic.is_visible(new_obj, user) is True
 
 
-def test_is_public_non_owner():
+def test_is_visible_non_owner():
     """
     Returns the value of "public" meta attribute for all other users.
     """
@@ -335,7 +378,21 @@ def test_is_public_non_owner():
     new_uuid = logic.add_object("objectname", "object description", user)
     new_obj = database.OBJECTS[new_uuid]
     new_obj["_meta"]["public"] = False
-    assert logic.is_public(new_obj, otheruser) is False
+    assert logic.is_visible(new_obj, otheruser) is False
+
+
+def test_set_visibile_not_object():
+    """
+    Only objects which are typeof "object" can have their visibility changed.
+    Users, rooms and exits are always public.
+    """
+    user_uuid = logic.add_user("username", "description", "password",
+                               "mail@example.com")
+    user = database.OBJECTS[user_uuid]
+    new_uuid = logic.add_room("objectname", "object description", user)
+    new_obj = database.OBJECTS[new_uuid]
+    with pytest.raises(TypeError):
+        logic.set_visible(new_obj, False, user)
 
 
 def test_set_visibile_superuser():
@@ -1456,35 +1513,6 @@ def test_remove_alias_fail():
     new_uuid = logic.add_object("objectname", "object description", user)
     # Alias does not exist.
     assert logic.remove_alias(new_uuid, user, "aliasname") is False
-
-
-def test_set_public():
-    """
-    Users who own an object can change its "public" flag.
-    """
-    user_uuid = logic.add_user("username", "description", "password",
-                               "mail@eample.com")
-    user = database.OBJECTS[user_uuid]
-    new_uuid = logic.add_object("objectname", "object description", user)
-    assert logic.set_public(new_uuid, user, False) is True
-    obj = database.OBJECTS[new_uuid]
-    assert obj["_meta"]["public"] is False
-
-
-def test_set_public_fail():
-    """
-    An incorrect call to set_public returns False.
-    """
-    user_uuid = logic.add_user("username", "description", "password",
-                               "mail@eample.com")
-    user = database.OBJECTS[user_uuid]
-    new_uuid = logic.add_object("objectname", "object description", user)
-    otheruser_uuid = logic.add_user("otherusername", "description", "password",
-                                    "mail@eample.com")
-    otheruser = database.OBJECTS[otheruser_uuid]
-    assert logic.set_public(new_uuid, otheruser, False) is False
-    obj = database.OBJECTS[new_uuid]
-    assert obj["_meta"]["public"] is True
 
 
 def test_set_attribute():

@@ -292,6 +292,33 @@ def add_user(name, description, raw_password, email):
     return new_uuid
 
 
+def get_object_from_room(name, room, user):
+    """
+    Given an object name, will attempt to return the object[s] from the
+    contents of the referenced room. Will also check item aliases when finding
+    matches. The objects must be visible to the referenced user.
+    """
+    result = []
+    if "/" in name:
+        # We're looking for a FQN!
+        # FQN = Fully Qualified Name (i.e. an unambiguous unique name of the
+        # form ownername/objectname - hence checking for backslash).
+        for item_id in room["_meta"]["contents"]:
+            item = database.OBJECTS[item_id]
+            if item["_meta"]["fqn"] == name:
+                if is_visible(item, user):
+                    result.append(item)
+                    # FQN's are unique, once found, abort.
+                    break
+    elif name:
+        for item_id in room["_meta"]["contents"]:
+            item = database.OBJECTS[item_id]
+            if item["_meta"]["name"] == name or name in item["_meta"]["alias"]:
+                if is_visible(item, user):
+                    result.append(item)
+    return result
+
+
 def is_owner(obj, user):
     """
     Returns a boolean indicating if the referenced user owns the referenced
@@ -302,7 +329,7 @@ def is_owner(obj, user):
     return bool(superuser or owner)
 
 
-def is_public(obj, user):
+def is_visible(obj, user):
     """
     Return a boolean to indicate if the referenced object if visible to the
     given user.
@@ -322,6 +349,8 @@ def set_visible(obj, public, user):
 
     Will raise a PermissionError if the user isn't the owner or a superuser.
     """
+    if obj["_meta"]["typeof"] != "object":
+        raise TypeError("Cannot change visibility of that sort of things.")
     superuser = user["_meta"]["superuser"]
     owner = is_owner(obj, user)
     if superuser or owner:
@@ -498,11 +527,12 @@ async def move(obj_id, exit_id, user_id):
     await emit_to_room(destination_id, arrive_room, exclude=exclude)
 
 
-async def teleport(user_id, destination_id):
+async def teleport(user_id, dest_fqn):
     """
     Teleport a user into a target room.
     """
     user = database.OBJECTS.get(user_id)
+    destination_id = database.FQNS[dest_fqn]
     destination = database.OBJECTS.get(destination_id)
     # Ensure the user exist and destination exits.
     if not (user and destination):
@@ -560,7 +590,7 @@ def clone(source_id, target_name, user):
     old_obj = database.OBJECTS[source_id]
     if old_obj["_meta"]["typeof"] != "object":
         raise ValueError("Can only clone objects.")
-    if is_public(old_obj, user):
+    if is_visible(old_obj, user):
         # Create a new (cloned) object that belongs to the referenced user.
         new_object_id = add_object(target_name, old_obj["description"], user)
         new_object = database.OBJECTS[new_object_id]
@@ -648,7 +678,7 @@ async def look(obj_id, user):
     of the destination. If it's a user, also list their inventory.
     """
     obj = database.OBJECTS[obj_id]
-    if obj and is_public(obj, user):
+    if obj and is_visible(obj, user):
         typeof = obj["_meta"]["typeof"]
         context = {
             "name": obj["_meta"]["name"],
@@ -666,13 +696,13 @@ async def look(obj_id, user):
             contents = []
             for item_id in obj["_meta"]["contents"]:
                 item = database.OBJECTS[item_id]
-                if is_public(item, user):
+                if is_visible(item, user):
                     contents.append(item["_meta"]["name"])
             context["contents"] = contents
             exits = []
             for exit_id in obj["_meta"]["exits_out"]:
                 exit = database.OBJECTS[exit_id]
-                if is_public(exit, user):
+                if is_visible(exit, user):
                     exits.append(exit["_meta"]["name"])
             context["exits"] = exits
         elif typeof == "exit":
@@ -683,19 +713,20 @@ async def look(obj_id, user):
             inventory = []
             for item_id in obj["_meta"]["inventory"]:
                 item = database.OBJECTS[item_id]
-                if is_public(item, user):
+                if is_visible(item, user):
                     inventory.append(item["_meta"]["name"])
             context["inventory"] = inventory
         message = await render_template_string(LOOK_TEMPLATE, **context)
         await emit_to_user(user["_meta"]["uuid"], message)
 
 
-async def detail(obj_id, user):
+async def detail(obj_fqn, user):
     """
     Give all the details about the referenced object to the referenced user.
     """
+    obj_id = database.FQNS[obj_fqn]
     obj = database.OBJECTS[obj_id]
-    if obj and is_public(obj, user):
+    if obj and is_visible(obj, user):
         typeof = obj["_meta"]["typeof"]
         owner = database.OBJECTS[obj["_meta"]["owner"]]
         context = {
@@ -711,22 +742,22 @@ async def detail(obj_id, user):
             contents = []
             for item_id in obj["_meta"]["contents"]:
                 item = database.OBJECTS[item_id]
-                if is_public(item, user):
+                if is_visible(item, user):
                     contents.append(item["_meta"]["name"])
             exits_out = []
             for exit_id in obj["_meta"]["exits_out"]:
                 exit = database.OBJECTS[exit_id]
-                if is_public(exit, user):
+                if is_visible(exit, user):
                     exits_out.append(exit["_meta"]["name"])
             allow = []
             for item_id in obj["_meta"]["allow"]:
                 item = database.OBJECTS[item_id]
-                if is_public(item, user):
+                if is_visible(item, user):
                     allow.append(item["_meta"]["name"])
             exclude = []
             for item_id in obj["_meta"]["exclude"]:
                 item = database.OBJECTS[item_id]
-                if is_public(item, user):
+                if is_visible(item, user):
                     exclude.append(item["_meta"]["name"])
             context.update({
                 "contents": ", ".join(contents),
@@ -743,12 +774,12 @@ async def detail(obj_id, user):
             inventory = []
             for item_id in obj["_meta"]["inventory"]:
                 item = database.OBJECTS[item_id]
-                if is_public(item, user):
+                if is_visible(item, user):
                     inventory.append(item["_meta"]["name"])
             owns = []
             for item_id in obj["_meta"]["owns"]:
                 item = database.OBJECTS[item_id]
-                if is_public(item, user):
+                if is_visible(item, user):
                     owns.append(item["_meta"]["name"])
 
             created_on = datetime.utcfromtimestamp(obj["_meta"]["created_on"])
@@ -800,18 +831,6 @@ def remove_alias(obj_id, user, alias):
         if alias in obj["_meta"]["alias"]:
             obj["_meta"]["alias"].remove(alias)
             return True
-    return False
-
-
-def set_public(obj_id, user, public):
-    """
-    Set the public attribute for the referenced object. The object must belong
-    to the referenced user. Returns True if success.
-    """
-    obj = database.OBJECTS[obj_id]
-    if obj and is_owner(obj, user):
-        obj["_meta"]["public"] = bool(public)
-        return True
     return False
 
 
@@ -941,4 +960,4 @@ async def emit_to_user(user_id, message, raw=False):
     """
     ws = database.CONNECTIONS.get(user_id)
     if ws:
-        await ws.send(message)
+        await ws.send(str(message))

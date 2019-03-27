@@ -20,6 +20,7 @@ import json
 
 
 USERS = {}  # Key = username, Value = object ID for user.
+FQNS = {}  # Key = fqn of object, Value = UUID for object.
 OBJECTS = {}  # All objects are a UUID referencing a dictionary.
 CONNECTIONS = {}  # Key = user's uuid, Value = an open websocket connect.
 DEFAULT_DATAFILE = "database.json"  # Where to dump the database.
@@ -34,9 +35,11 @@ def load_database(filename=DEFAULT_DATAFILE):
     global USERS
     with open(filename, "r") as f:
         OBJECTS = json.load(f)
-    # Update the USERS convenience lookup table.
+    # Update the USERS and FQNS convenience lookup tables.
     USERS = {}
+    FQNS = {}
     for uuid, obj in OBJECTS.items():
+        FQNS[obj["_meta"]["fqn"]] = obj["_meta"]["uuid"]
         if obj["_meta"]["typeof"] == "user":
             USERS[obj["_meta"]["name"]] = obj["_meta"]["uuid"]
 
@@ -70,6 +73,8 @@ def make_object(uuid, name, fqn, description, alias, owner, public,
     Metadata for the object, used by the game system and only revealed to the
     users via the game itself, is found in the _meta sub_dictionary.
     """
+    global FQNS
+    FQNS[fqn] = uuid
     return {
         "description": description,
         "_meta": {
