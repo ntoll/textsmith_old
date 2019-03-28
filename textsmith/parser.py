@@ -17,7 +17,29 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+import random
 from textsmith import logic, database
+
+
+async def eval(user_id, message):
+    """
+    Evaluate the user's input message. If there's an error, recover by sending
+    the error message from the associated exception object.
+    """
+    try:
+        await parse(user_id, message)
+    except Exception as ex:
+        # TODO: Log this somewhere
+        await handle_exception(ex, user_id)
+
+
+async def handle_exception(exception, user_id):
+    """
+    Given an exception raised in the logic or parsing layer of the application,
+    extract the useful message which explains what the problem is, and turn
+    it into a message back to the referenced user.
+    """
+    await logic.emit_to_user(user_id, str(exception))
 
 
 async def parse(user_id, message):
@@ -96,117 +118,51 @@ async def parse(user_id, message):
 
     That's it!
     """
+    # Don't do anything with empty messages.
+    if not message.strip():
+        return
+
+    # Grab the objects needed to help parse the message.
     user = database.OBJECTS[user_id]
     room = database.OBJECTS[user["_meta"]["location"]]
-    if not message.strip():
-        # Don't do anything with empty messages.
-        return
+
+    # Check and process special "shortcut" characters.
     message = message.lstrip()
     if message.startswith('"'):
-        # The user is saying something to everyone.
+        # " The user is saying something to everyone in their location.
         return await say(user, room, message[1:])
     elif message.startswith("!"):
-        # The user is shouting something to everyone.
+        # ! The user is shouting something to everyone in their location.
         return await shout(user, room, message[1:])
     elif message.startswith(":"):
-        # The user is emoting something to everyone.
+        # : The user is emoting something to everyone in their location.
         return await emote(user, room, message[1:])
     elif message.startswith("@"):
-        # The user is saying something to a specific person.
+        # @ The user is saying something to a specific person.
         return await tell(user, room, message[1:])
-    
+
     # Check for verbs built into the game.
     verb_split = message.split(" ", 1)
-    verb = verb_split[0].lower()
-    if verb in ["create", "make", "cr", "mk", ]:
-        # Create a new object.
-        return await create(user, room, verb_split[1:])
-    elif verb == "build":
-        # Build a new room.
-    elif verb ["connect", "co", ]:
-        # Connect the current room to another via an exit.
-    elif verb in ["visibility", "viz", "vis", ]:
-        # Set the visibility of an object.
-    elif verb in ["remove", "delete", "destroy", "rm", "del", ]:
-        # Destroy an object or delete an attribute on an object.
-    elif verb in ["go", "move", "exit", "mv", ]:
-        # Move to another place via an exit.
-    elif verb == "teleport":
-        # Teleport the user somewhere else.
-    elif verb in ["clone", "copy", "cp", ]:
-        # Clone an object.
-    elif verb in ["take", "get", ]:
-        # Take an object from the room into the user's inventory.
-    elif verb == "give":
-        # Give an object to another user.
-    elif verb in ["drop", "leave", ]:
-        # Drop an object from the user's inventory into the room.
-    elif verb in ["look", "lk", "l", ]:
-        # Look at either the current room or a specific object.
-    elif verb in ["detail", "examine", "det", "dtl", ]:
-        # Get a detailed summary of the specified object or current room.
-    elif verb in ["addalias", "alias+", "ali+", ]:
-        # Add an alias to the specified object.
-    elif verb in ["rmalias", "alias-", "ali-", ]:
-        # Remove an alias from the specified object.
-    elif verb in ["set", "attr", ]:
-        # Set an attribute on an object with associated value.
-    elif verb in ["addallow", "allow+", "alw+", ]:
-        # Add a user to the allow list for the current room.
-    elif verb in ["rmallow", "allow-", "alw-", ]:
-        # Remove a user from the allow list for the current room.
-    elif verb in ["addexclude", "exclude+", "ex+"]:
-        # Add a user to the exclude list for the current room.
-    elif verb in ["rmexclude", "exclude-", "ex-"]:
-        # Remove a user from the exclude list for the current room.
+    verb = verb_split[0]  # The first word in the message is the verb.
+    args = ""
+    if len(verb_split) == 2:
+        # The remainder of the message contains the "arguments" to use with the
+        # verb, and may ultimately contain the direct and indirectt objects
+        # (if needed).
+        args = verb_split[1]
+    # Builtins is a dictionary. The key is a tuple of strings. Each string in
+    # the tuple is an alias for a builtin verb. The associated value is an
+    # async function with a common call signature which should be awaited from
+    # if the verb entered by the user is found in the key/tuple.
+    for k in BUILTINS:
+        if verb in k:
+            # Verb name or alias found, so return the result of running the
+            # async function associated with the key.
+            return await BUILTINS[k](user, room, args)
 
-    # Work out the verb, direct_obj, preposition and indirect_obj.
-    direct_obj = None
-    preposition = None
-    indirect_obj = None
-    pos = 1
-    word_len = len(verb_split)
-    if word_len > 1:
-        direct_obj = verb_split[pos]
-        if direct_obj.startswith('"'):
-            # Multi word entity.
-            while pos < word_len:
-                pos += 1
-                direct_obj += " " + verb_split[pos]
-                if direct_obj.endswith('"'):
-                    direct_obj = direct_obj[1:-1]  # Remove quotes.
-                    break
-    if pos < word_len:
-        pos += 1
-        preposition = verb_split[pos]
-    if pos < word_len:
-        indirect_obj = verb_split[pos:]
-        if indirect_obj.startswith('"') and indirect_obj.endswith('"'):
-            indirect_obj = indirect_obj[1:-1]  # Remove quotes.
-    # If the direct_obj or indirect_obj refer to an object name, replace
-    # it with the referenced object.
-    dobj_match = logic.get_object_from_room(direct_obj, room, user)
-    if dobj_match:
-        if len(match) == 1:
-            direct_obj = dobj_match[0]
-        else:
-            # Tell user to disambiguate.
-            matches = [x["_meta"]["name"] + "(" + x["_meta"]["fqn"] + ")"
-                       for x in dobj_match]
-            msg = ("Multiple matshes (via object name or alias). "
-                   "Please disambiguate between: " + ', '.join(matches))
-            return await logic.emit_to_user(user_id, msg)
-    iobj_match = logic.get_object_from_room(indirect_obj, room, user)
-    if iobj_match:
-        if len(match) == 1:
-            indirect_obj = iobj_match[0]
-        else:
-            # Tell user to disambiguate.
-            matches = [x["_meta"]["name"] + "(" + x["_meta"]["fqn"] + ")"
-                       for x in iobj_match]
-            msg = ("Multiple matshes (via object name or alias). "
-                   "Please disambiguate between: " + ', '.join(matches))
-            return await logic.emit_to_user(user_id, msg)
+    # Attempt to grab the objects needed for further parsing.
+    direct_obj, preposition, indirect_obj = await get_objects(user, room, args)
+
     # Try to return a result by interrogating the user, room, direct and
     # indirect objects. Ensure the game doesn't inadvertently reveal the
     # contents of _meta.
@@ -219,24 +175,135 @@ async def parse(user_id, message):
             return await logic.emit_to_user(user_id, direct_obj[verb])
         elif isinstance(indirect_obj, dict) and verb in indirect_obj:
             return await logic.emit_to_user(user_id, indirect_obj[verb])
+
+    # If the verb is the name or alias of an exit in the current room, then
+    # follow that exit to a new location.
+    for exit_id in room["_meta"]["exits_out"]:
+        exit = database.OBJECTS[exit_id]
+        name = exit["_meta"]["name"]
+        alias = exit["_meta"]["alias"]
+        if verb == name or verb in alias:
+            return await logic.move(user_id, exit_id, user_id)
+
     # Getting here means the parser can't work out how to process the user's
-    # input, so say something cheerful, helpful or, if defined as an attribute
-    # of the room, whatever is in "huh". :-)
+    # input, so say something cheerful, helpful, funny or, if defined as an
+    # attribute of the room, whatever is in "huh". :-)
     if "huh" in room:
+        # The owner of the room has defined a response for not understanding
+        # user input.
         return await logic.emit_to_user(user_id, room["huh"])
     else:
-        return await logic.emit_to_user(user_id, "I don't understand that.")
+        # As a last resort, choose a stock fun response. ;-)
+        response = random.choice([
+            "I don't understand that.",
+            "Nope. No idea what you're on about.",
+            "I don't know what you mean.",
+            "Try explaining that in a way I can understand.",
+            "Yeah right... as if I know what you're on about. :-)",
+            "Let me try tha... nope. I have no idea what you're on about.",
+            "Ummm... you're not making sense. Try again, but with feeling!",
+            "No idea. Try giving me something I understand.",
+            "Huh? I don't understand. Maybe ask someone for help?",
+            "Try using commands I understand.",
+        ])
+        i_give_up = f'"{message}", ' + response
+        return await logic.emit_to_user(user_id, i_give_up)
 
 
-async def handle_exception(exception, user):
+async def get_objects(user, room, args):
     """
-    Given an exception raised in the logic or parsing layer of the application,
-    extract the useful message which explains what the problem is, and turn
-    it into a message back to the referenced user.
+    Given a string representing the remaining input after the verb, return a
+    the direct object, preposition and indirect object in a tuple. These three
+    values may all be None, if no such objects are found within the string. The
+    objects may be multiple words if they're bound by double quotes ("). E.g.
+    "large troll" might be an individual valid matching object.
+
+    If the strings identifying the direct and indirect objects refer to objects
+    in the current room or the user's inventory either by name or alias, return
+    the *objects* (not strings) instead.
     """
-    await logic.emit_to_user(user["_meta"]["uuid"], str(exception))
+    # Nothing left in the message, nothing more to do.
+    if not args:
+        return (None, None, None)
+    direct_obj = None
+    preposition = None
+    indirect_obj = None
+    word_pos = 0
+    words = args.split()
+    word_len = len(words)
+    direct_obj = words[word_pos]
+    if direct_obj.startswith('"'):
+        direct_obj = direct_obj[1:]  # cut off leading quote.
+        while word_pos < word_len:
+            # Keep adding words to the direct object until...
+            word_pos += 1
+            direct_obj += " " + words[word_pos].strip()
+            if '"' in direct_obj:
+                # ...a word contains a quotation mark.
+                if direct_obj.endswith('"'):
+                    direct_obj = direct_obj[:-1]  # Remove trailing quote.
+                    break
+                else:
+                    # The quotation mark is in the wrong place. Report the
+                    # problem.
+                    raise ValueError("Unclosed quotation marks.")
+    # The next word MUST be a preposition (which we ignore for now).
+    if word_pos < word_len - 1:
+        word_pos += 1
+        preposition = words[word_pos]
+    # Finally, process the indirect object.
+    if word_pos < word_len - 1:
+        word_pos += 1
+        # Indirect object must be made up from all the remaining words.
+        indirect_obj = words[word_pos:]
+        if len(indirect_obj) == 1:
+            indirect_obj = indirect_obj[0]  # Indirect object is single word.
+            if indirect_obj.startswith('"') or indirect_obj.endswith('"'):
+                # The indirect object was not quoted as expected, so report
+                # the problem.
+                raise ValueError("Unclosed quotation marks.")
+        else:
+            indirect_obj = ' '.join(indirect_obj)  # Join all remaining words.
+            if indirect_obj.startswith('"') and indirect_obj.endswith('"'):
+                indirect_obj = indirect_obj[1:-1]  # Remove quotes.
+            else:
+                # The indirect object was not quoted as expected, so report
+                # the problem.
+                raise ValueError("Unclosed quotation marks.")
+    # If the direct_obj or indirect_obj refer to an object in scope (either
+    # contained within the current room, or in the user's inventory), replace
+    # the string with the referenced object instead.
+    dobj_match = logic.get_object_from_context(direct_obj, room, user)
+    iobj_match = logic.get_object_from_context(indirect_obj, room, user)
+    dobj_len = len(dobj_match)
+    iobj_len = len(iobj_match)
+    if dobj_len == 1:
+        # There's exactly one object that matches, so make that the
+        # direct object.
+        direct_obj = dobj_match[0]
+    elif dobj_len > 1:
+        # Too many matches, so raise an error telling the user to disambiguate.
+        matches = [x["_meta"]["name"] + "(" + x["_meta"]["fqn"] + ")"
+                   for x in dobj_match]
+        msg = ("Multiple matches (via direct object name or alias). "
+               "Please disambiguate between: " + ', '.join(matches))
+        raise ValueError(msg)
+    if iobj_len == 1:
+        # There's exactly one object that matches, so make that the
+        # indirect object.
+        indirect_obj = iobj_match[0]
+    elif iobj_len > 1:
+        # Too many matches, so raise an error telling the user to disambiguate.
+        matches = [x["_meta"]["name"] + "(" + x["_meta"]["fqn"] + ")"
+                   for x in iobj_match]
+        msg = ("Multiple matches (via indirect object name or alias). "
+               "Please disambiguate between: " + ', '.join(matches))
+        raise ValueError(msg)
+    # Got them!
+    return (direct_obj, preposition, indirect_obj)
 
 
+# BUILTIN FUNCTIONS
 async def say(user, room, message):
     """
     Say a message to the the whole room.
@@ -265,7 +332,7 @@ async def shout(user, room, message):
         await logic.emit_to_room(room_id, room_message, exclude=[user_id, ])
 
 
-async def shout(user, room, message):
+async def emote(user, room, message):
     """
     Emote something to the the whole room.
     """
@@ -285,6 +352,13 @@ async def tell(user, room, message):
         split = message.split(" ", 1)
         if len(split) == 2:
             recipient = split[0]
+            recipient_obj = database.USERS.get(recipient)
+            # Check the recipient exists.
+            if recipient_obj is None:
+                raise ValueError("I don't know who {recipient} is.")
+            # Check the recipient user is in the room.
+            if recipient_obj["_meta"]["location"] != room["_meta"]["uuid"]:
+                raise ValueError("Can't do that, {recipient} isn't here.")
             message = split[1]
             user_message = f'> You say to {recipient}, "*{message}*".'
             username = user["_meta"]["name"]
@@ -311,3 +385,101 @@ async def create(user, room, message):
         return await logic.emit_to_user(user["_meta"]["uuid"], msg)
     else:
         raise RuntimeError("Not enough arguments to create object.")
+
+
+async def build(user, room, message):
+    """
+    Of the form:
+
+    build newroomname A description of the new room.
+    """
+    split_message = message.split(' ', 1)
+    if len(split_message) == 2:
+        name = split_message[0]
+        description = split_message[1]
+        room_id = logic.build(name, description, user)
+        room = database.OBJECTS[room_id]
+        fqn = room["_meta"]["fqn"]
+        msg = (f"Created new room {name} ({fqn}). Use the 'connect' command "
+               "to connect it to other rooms.")
+        return await logic.emit_to_user(user["_meta"]["uuid"], msg)
+    else:
+        raise RuntimeError("Not enough arguments to create object.")
+
+
+async def connect(user, room, message):
+    """
+    Of the form:
+
+    connect room/fqn exitname A description of the new exit.
+    """
+    split_message = message.split(' ', 3)
+    if len(split_message) == 3:
+        destination_fqn = split_message[0]
+        destination = database.FQNS[destination_fqn]
+        exitname = split_message[1]
+        description = split_message[2]
+        exit_id = logic.add_exit(name, description, user, room, destination)
+        exit = database.OBJECTS[exit_id]
+        fqn = exit["_meta"]["fqn"]
+        sname = room["_meta"]["name"]  # source room name.
+        dname = destination["_meta"]["name"]  # destination room name.
+        msg = f"Created new exit {name} ({fqn}) from {sname} to {dname}."
+        return await logic.emit_to_user(user["_meta"]["uuid"], msg)
+    else:
+        raise RuntimeError("Not enough arguments to create object.")
+
+
+# Contain references to the game's builtin functions.
+BUILTINS = {
+    # Create a new object.
+    ("create", "make", "cr", "mk"): create,
+    # Build a new room.
+    ("build", ): build,
+    # Connect two rooms together.
+    ("connect", "co"): connect,
+}
+
+"""
+    elif verb in ["connect", "co", ]:
+        # Connect the current room to another via an exit.
+        return await connect(user, room verb
+    elif verb in ["describe", "desc", ]:
+        # Set the description of an object/room/exit.
+    elif verb in ["visibility", "viz", "vis", ]:
+        # Set the visibility of an object.
+    elif verb in ["remove", "delete", "destroy", "rm", "del", ]:
+        # Destroy an object or delete an attribute on an object.
+    elif verb in ["go", "move", "exit", "mv", ]:
+        # Move to another place via an exit.
+    elif verb == "teleport":
+        # Teleport the user somewhere else.
+    elif verb in ["clone", "copy", "cp", ]:
+        # Clone an object.
+    elif verb in ["inventory", "inv", ]:
+        # List the objects in the user's inventory which are visible.
+    elif verb in ["take", "get", ]:
+        # Take an object from the room into the user's inventory.
+    elif verb == "give":
+        # Give an object to another user.
+    elif verb in ["drop", "leave", ]:
+        # Drop an object from the user's inventory into the room.
+    elif verb in ["look", "lk", "l", ]:
+        # Look at either the current room or a specific object.
+    elif verb in ["detail", "examine", "det", "dtl", ]:
+        # Get a detailed summary of the specified object or current room.
+    elif verb in ["addalias", "alias+", "ali+", ]:
+        # Add an alias to the specified object.
+    elif verb in ["rmalias", "alias-", "ali-", ]:
+        # Remove an alias from the specified object.
+    elif verb in ["set", "attr", ]:
+        # Set an attribute on an object with associated value.
+    elif verb in ["addallow", "allow+", "alw+", ]:
+        # Add a user to the allow list for the current room.
+    elif verb in ["rmallow", "allow-", "alw-", ]:
+        # Remove a user from the allow list for the current room.
+    elif verb in ["addexclude", "exclude+", "ex+"]:
+        # Add a user to the exclude list for the current room.
+    elif verb in ["rmexclude", "exclude-", "ex-"]:
+        # Remove a user from the exclude list for the current room.
+"""

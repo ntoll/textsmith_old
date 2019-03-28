@@ -58,6 +58,8 @@ def test_add_object():
     user = database.OBJECTS[user_uuid]
     new_uuid = logic.add_object("objectname", "object description", user)
     assert new_uuid in database.OBJECTS
+    new_obj = database.OBJECTS[new_uuid]
+    assert new_obj["_meta"]["fqn"] in database.FQNS
     assert new_uuid in user["_meta"]["owns"]
 
 
@@ -95,6 +97,8 @@ def test_add_room():
     user = database.OBJECTS[user_uuid]
     new_uuid = logic.add_room("roomname", "room description", user)
     assert new_uuid in database.OBJECTS
+    new_room = database.OBJECTS[new_uuid]
+    assert new_room["_meta"]["fqn"] in database.FQNS
     assert new_uuid in user["_meta"]["owns"]
 
 
@@ -138,6 +142,8 @@ def test_add_exit():
     new_uuid = logic.add_exit("exitname", "description", user, source,
                               destination)
     assert new_uuid in database.OBJECTS
+    new_exit = database.OBJECTS[new_uuid]
+    assert new_exit["_meta"]["fqn"] in database.FQNS
     assert new_uuid in user["_meta"]["owns"]
     assert new_uuid in source["_meta"]["exits_out"]
     assert new_uuid in destination["_meta"]["exits_in"]
@@ -176,6 +182,20 @@ def test_add_exit_duplicate_name():
     with pytest.raises(ValueError):
         new_uuid = logic.add_exit("exitname", "description", user, source,
                                   destination)
+
+
+def test_add_exit_connect_room_to_itself():
+    """
+    Ensure an exit must start/end in different rooms. ;-)
+    """
+    user_uuid = logic.add_user("username", "description", "password",
+                               "mail@example.com")
+    user = database.OBJECTS[user_uuid]
+    source_uuid = logic.add_room("sourceroom", "room description", user)
+    source = database.OBJECTS[source_uuid]
+    with pytest.raises(ValueError):
+        new_uuid = logic.add_exit("exitname", "description", user, source,
+                                  source)
 
 
 def test_add_exit_user_not_in_allow():
@@ -252,6 +272,9 @@ def test_add_user():
     assert user["_meta"]["location"] is None
     # Users own themselves.
     assert user_uuid in user["_meta"]["owns"]
+    # User is in the USERS and FQNS lookup tables.
+    assert user["_meta"]["name"] in database.USERS
+    assert user["_meta"]["fqn"] in database.FQNS
 
 
 def test_add_user_invalid_name():
@@ -274,6 +297,20 @@ def test_add_user_duplicate():
                                         "mail@example.com")
 
 
+def test_get_object_from_context_no_name():
+    """
+    If the passed in name is None, an empty list is returned since there's
+    nothing to search for in the context. This may happen if the direct or
+    indirect objects have not been specified in the parser layer.
+    """
+    user_uuid = logic.add_user("username", "description", "password",
+                               "mail@example.com")
+    user = database.OBJECTS[user_uuid]
+    room_id = logic.add_room("roomname", "room description", user)
+    room = database.OBJECTS[room_id]
+    assert logic.get_object_from_context(None, room, user) == []
+
+
 def test_get_object_from_room_by_fqn():
     """
     Ensure objects with matching names or aliases are returned if they are
@@ -290,7 +327,8 @@ def test_get_object_from_room_by_fqn():
     obj2 = database.OBJECTS[obj2_id]
     obj2["_meta"]["alias"].append("obj1name")  # Just for testing.
     room["_meta"]["contents"] = [obj1_id, obj2_id, obj3_id, ]
-    result = logic.get_object_from_room("username/obj1name", room, user)
+    user["_meta"]["inventory"] = []
+    result = logic.get_object_from_context("username/obj1name", room, user)
     assert len(result) == 1
     assert result[0]["_meta"]["uuid"] == obj1_id
 
@@ -311,7 +349,49 @@ def test_get_object_from_room_by_name():
     obj2 = database.OBJECTS[obj2_id]
     obj2["_meta"]["alias"].append("obj1name")  # Just for testing.
     room["_meta"]["contents"] = [obj1_id, obj2_id, obj3_id, ]
-    result = logic.get_object_from_room("obj1name", room, user)
+    user["_meta"]["inventory"] = []
+    result = logic.get_object_from_context("obj1name", room, user)
+    assert len(result) == 2
+    assert result[0]["_meta"]["uuid"] == obj1_id
+    assert result[1]["_meta"]["uuid"] == obj2_id
+
+
+def test_get_object_from_user_by_fqn():
+    """
+    Ensure objects with matching names or aliases are returned if they are
+    contained within the referenced user's inventory.
+    """
+    user_uuid = logic.add_user("username", "description", "password",
+                               "mail@example.com")
+    user = database.OBJECTS[user_uuid]
+    room_id = logic.add_room("roomname", "room description", user)
+    room = database.OBJECTS[room_id]
+    obj1_id = logic.add_object("obj1name", "object description", user)
+    obj2_id = logic.add_object("obj2name", "object description", user)
+    obj3_id = logic.add_object("obj3name", "object description", user)
+    obj2 = database.OBJECTS[obj2_id]
+    obj2["_meta"]["alias"].append("obj1name")  # Just for testing.
+    result = logic.get_object_from_context("username/obj1name", room, user)
+    assert len(result) == 1
+    assert result[0]["_meta"]["uuid"] == obj1_id
+
+
+def test_get_object_from_user_by_name():
+    """
+    Ensure objects with matching names or aliases are returned if they are
+    contained within the referenced user's inventory.
+    """
+    user_uuid = logic.add_user("username", "description", "password",
+                               "mail@example.com")
+    user = database.OBJECTS[user_uuid]
+    room_id = logic.add_room("roomname", "room description", user)
+    room = database.OBJECTS[room_id]
+    obj1_id = logic.add_object("obj1name", "object description", user)
+    obj2_id = logic.add_object("obj2name", "object description", user)
+    obj3_id = logic.add_object("obj3name", "object description", user)
+    obj2 = database.OBJECTS[obj2_id]
+    obj2["_meta"]["alias"].append("obj1name")  # Just for testing.
+    result = logic.get_object_from_context("obj1name", room, user)
     assert len(result) == 2
     assert result[0]["_meta"]["uuid"] == obj1_id
     assert result[1]["_meta"]["uuid"] == obj2_id
@@ -494,6 +574,7 @@ def test_delete_object_as_superuser():
     assert new_uuid not in database.OBJECTS
     assert new_uuid not in user["_meta"]["owns"]
     assert obj["_meta"]["fqn"] not in user["_meta"]["fqns"]
+    assert obj["_meta"]["fqn"] not in database.FQNS
 
 
 def test_delete_object_as_owner():
@@ -509,6 +590,7 @@ def test_delete_object_as_owner():
     assert new_uuid not in database.OBJECTS
     assert new_uuid not in user["_meta"]["owns"]
     assert obj["_meta"]["fqn"] not in user["_meta"]["fqns"]
+    assert obj["_meta"]["fqn"] not in database.FQNS
 
 
 def test_delete_room_does_not_exits():
@@ -576,6 +658,7 @@ def test_delete_room_as_superuser():
     assert new_uuid not in database.OBJECTS
     assert new_uuid not in user["_meta"]["owns"]
     assert room["_meta"]["fqn"] not in user["_meta"]["fqns"]
+    assert room["_meta"]["fqn"] not in database.FQNS
     # Objects that were in the room, are now in their owners inventory.
     assert obj_uuid in user["_meta"]["inventory"]
     # Users who were in the room and now at the default "nowhere" location.
@@ -616,6 +699,7 @@ def test_delete_room_as_owner():
     assert new_uuid not in database.OBJECTS
     assert new_uuid not in user["_meta"]["owns"]
     assert room["_meta"]["fqn"] not in user["_meta"]["fqns"]
+    assert room["_meta"]["fqn"] not in database.FQNS
     # Objects that were in the room, are now in their owners inventory.
     assert obj_uuid in user["_meta"]["inventory"]
     # Users who were in the room and now at the default "nowhere" location.
@@ -694,6 +778,7 @@ def test_delete_exit_as_superuser():
     assert exit_id not in room2["_meta"]["exits_in"]
     assert exit_id not in user["_meta"]["owns"]
     assert exit["_meta"]["fqn"] not in user["_meta"]["fqns"]
+    assert exit["_meta"]["fqn"] not in database.FQNS
 
 
 def test_delete_exit_as_owner():
@@ -723,6 +808,7 @@ def test_delete_exit_as_owner():
     assert exit_id not in room2["_meta"]["exits_in"]
     assert exit_id not in user["_meta"]["owns"]
     assert exit["_meta"]["fqn"] not in user["_meta"]["fqns"]
+    assert exit["_meta"]["fqn"] not in database.FQNS
 
 
 def test_delete_exit_as_forced():
@@ -752,6 +838,7 @@ def test_delete_exit_as_forced():
     assert exit_id not in room2["_meta"]["exits_in"]
     assert exit_id not in user["_meta"]["owns"]
     assert exit["_meta"]["fqn"] not in user["_meta"]["fqns"]
+    assert exit["_meta"]["fqn"] not in database.FQNS
 
 
 @pytest.mark.asyncio
@@ -984,9 +1071,10 @@ async def test_teleport_non_existent_destination():
     user_uuid = logic.add_user("username", "description", "password",
                                "mail@example.com")
     user = database.OBJECTS[user_uuid]
+    fqn = user["_meta"]["fqn"]
     room1_uuid = logic.add_room("room1name", "room description", user)
     with pytest.raises(ValueError):
-        await logic.teleport(user_uuid, logic.make_uuid())
+        await logic.teleport(user_uuid, "foo/bar")
 
 
 @pytest.mark.asyncio
@@ -999,7 +1087,7 @@ async def test_teleport_non_existent_user():
     user = database.OBJECTS[user_uuid]
     room1_uuid = logic.add_room("room1name", "room description", user)
     with pytest.raises(ValueError):
-        await logic.teleport(logic.make_uuid(), room1_uuid)
+        await logic.teleport("foo/bar", room1_uuid)
 
 
 @pytest.mark.asyncio
@@ -1014,8 +1102,9 @@ async def test_teleport_to_current_location():
     user["_meta"]["location"] = room1_uuid
     room1 = database.OBJECTS[room1_uuid]
     room1["_meta"]["contents"].append(user_uuid)
+    fqn = room1["_meta"]["fqn"]
     with pytest.raises(ValueError):
-        await logic.teleport(user_uuid, room1_uuid)
+        await logic.teleport(user_uuid, fqn)
 
 
 @pytest.mark.asyncio
@@ -1033,7 +1122,8 @@ async def test_teleport():
     room2 = database.OBJECTS[room2_uuid]
     room1["_meta"]["contents"].append(user_uuid)
     room1["_meta"]["fqns"].append(user["_meta"]["fqn"])
-    await logic.teleport(user_uuid, room2_uuid)
+    fqn = room2["_meta"]["fqn"]
+    await logic.teleport(user_uuid, fqn)
     assert user_uuid not in room1["_meta"]["contents"]
     assert user["_meta"]["fqn"] not in room1["_meta"]["fqns"]
     assert user_uuid in room2["_meta"]["contents"]
@@ -1383,9 +1473,10 @@ async def test_detail_object():
     obj = database.OBJECTS[new_uuid]
     obj["_meta"]["alias"] = ["alias1", "alias2", ]
     obj["foo"] = "bar"
+    fqn = obj["_meta"]["fqn"]
     with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
         async with app.app_context():
-            await logic.detail(new_uuid, user)
+            await logic.detail(fqn, user)
         assert mock_etu.call_count == 1
         assert mock_etu.call_args_list[0][1] == {"raw": True}  # Raw HTML.
 
@@ -1410,9 +1501,10 @@ async def test_detail_room():
     otherroom = database.OBJECTS[otherroom_uuid]
     exit_id = logic.add_exit("exitname", "exit description", user, room,
                              otherroom)
+    fqn = room["_meta"]["fqn"]
     with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
         async with app.app_context():
-            await logic.detail(room_uuid, user)
+            await logic.detail(fqn, user)
         assert mock_etu.call_count == 1
         assert mock_etu.call_args_list[0][1] == {"raw": True}  # Raw HTML.
 
@@ -1435,9 +1527,10 @@ async def test_detail_exit():
     exit = database.OBJECTS[exit_id]
     exit["_meta"]["alias"] = ["alias1", "alias2", ]
     exit["foo"] = "bar"
+    fqn = exit["_meta"]["fqn"]
     with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
         async with app.app_context():
-            await logic.detail(exit_id, user)
+            await logic.detail(fqn, user)
         assert mock_etu.call_count == 1
         assert mock_etu.call_args_list[0][1] == {"raw": True}  # Raw HTML.
 
@@ -1457,9 +1550,10 @@ async def test_detail_user():
     user["_meta"]["last_login"] = time.time()
     room_uuid = logic.add_room("roomname", "room description", user)
     user["_meta"]["location"] = room_uuid
+    fqn = user["_meta"]["fqn"]
     with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
         async with app.app_context():
-            await logic.detail(user_uuid, user)
+            await logic.detail(fqn, user)
         assert mock_etu.call_count == 1
         assert mock_etu.call_args_list[0][1] == {"raw": True}  # Raw HTML.
 

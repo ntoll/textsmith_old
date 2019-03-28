@@ -232,6 +232,10 @@ def add_exit(name, description, user, source_room, destination_room):
     for exit_id in source_room["_meta"]["exits_out"]:
         if exit_id in destination_room["_meta"]["exits_in"]:
             raise KeyError("Exit to destination already exists.")
+    # An exit can't connect a room to itself.
+    if source_room["_meta"]["uuid"] == destination_room["_meta"]["uuid"]:
+        raise ValueError("You cannot create an exit to connect a room to "
+                         "itself.")
     # Add room to object database.
     source_id = source_room["_meta"]["uuid"]
     destination_id = destination_room["_meta"]["uuid"]
@@ -292,17 +296,21 @@ def add_user(name, description, raw_password, email):
     return new_uuid
 
 
-def get_object_from_room(name, room, user):
+def get_object_from_context(name, room, user):
     """
     Given an object name, will attempt to return the object[s] from the
-    contents of the referenced room. Will also check item aliases when finding
-    matches. The objects must be visible to the referenced user.
+    contents of the referenced room or the user's inventory. Will also check
+    item aliases when finding matches. The objects must be visible to the
+    referenced user.
     """
     result = []
+    if name is None:
+        return result
     if "/" in name:
         # We're looking for a FQN!
         # FQN = Fully Qualified Name (i.e. an unambiguous unique name of the
         # form ownername/objectname - hence checking for backslash).
+        # Check room.
         for item_id in room["_meta"]["contents"]:
             item = database.OBJECTS[item_id]
             if item["_meta"]["fqn"] == name:
@@ -310,8 +318,24 @@ def get_object_from_room(name, room, user):
                     result.append(item)
                     # FQN's are unique, once found, abort.
                     break
-    elif name:
+        # Check user's inventory.
+        for item_id in user["_meta"]["inventory"]:
+            item = database.OBJECTS[item_id]
+            if item["_meta"]["fqn"] == name:
+                if is_visible(item, user):
+                    result.append(item)
+                    # FQN's are unique, once found, abort.
+                    break
+    else:
+        # Looking for a single word name.
+        # Check room.
         for item_id in room["_meta"]["contents"]:
+            item = database.OBJECTS[item_id]
+            if item["_meta"]["name"] == name or name in item["_meta"]["alias"]:
+                if is_visible(item, user):
+                    result.append(item)
+        # Check user's inventory.
+        for item_id in user["_meta"]["inventory"]:
             item = database.OBJECTS[item_id]
             if item["_meta"]["name"] == name or name in item["_meta"]["alias"]:
                 if is_visible(item, user):
@@ -350,7 +374,7 @@ def set_visible(obj, public, user):
     Will raise a PermissionError if the user isn't the owner or a superuser.
     """
     if obj["_meta"]["typeof"] != "object":
-        raise TypeError("Cannot change visibility of that sort of things.")
+        raise TypeError("Cannot change visibility of that sort of thing.")
     superuser = user["_meta"]["superuser"]
     owner = is_owner(obj, user)
     if superuser or owner:
@@ -375,11 +399,13 @@ def delete_object(uuid, user):
             if superuser or owner:  # Is the user the owner or superuser?
                 # Remove the object from the "owns" and "fqns" lists of the
                 # owner of the object.
+                fqn = to_delete["_meta"]["fqn"]
                 owner_user = database.OBJECTS[to_delete["_meta"]["owner"]]
                 owner_user["_meta"]["owns"].remove(uuid)
-                owner_user["_meta"]["fqns"].remove(to_delete["_meta"]["fqn"])
-                # Delete the object from the database.
+                owner_user["_meta"]["fqns"].remove(fqn)
+                # Delete the object from the database and lookup table.
                 del database.OBJECTS[uuid]
+                del database.FQNS[fqn]
                 return True
     return False
 
@@ -431,11 +457,13 @@ def delete_room(uuid, user):
                     delete_exit(exit_id, user, force=True)
                 # Remove the object from the "owns" and "fqns" lists of the
                 # owner of the object.
+                fqn = room["_meta"]["fqn"]
                 owner_user = database.OBJECTS[room["_meta"]["owner"]]
                 owner_user["_meta"]["owns"].remove(uuid)
-                owner_user["_meta"]["fqns"].remove(room["_meta"]["fqn"])
+                owner_user["_meta"]["fqns"].remove(fqn)
                 # Delete the room itself.
                 del database.OBJECTS[uuid]
+                del database.FQNS[fqn]
                 return True
     return False
 
@@ -469,11 +497,13 @@ def delete_exit(uuid, user, force=False):
                         destination["_meta"]["exits_in"].remove(uuid)
                 # Remove the object from the "owns" and "fqns" lists of the
                 # owner of the object.
+                fqn = exit["_meta"]["fqn"]
                 owner_user = database.OBJECTS[exit["_meta"]["owner"]]
                 owner_user["_meta"]["owns"].remove(uuid)
-                owner_user["_meta"]["fqns"].remove(exit["_meta"]["fqn"])
+                owner_user["_meta"]["fqns"].remove(fqn)
                 # Delete the exit.
                 del database.OBJECTS[uuid]
+                del database.FQNS[fqn]
                 return True
     return False
 
@@ -532,7 +562,7 @@ async def teleport(user_id, dest_fqn):
     Teleport a user into a target room.
     """
     user = database.OBJECTS.get(user_id)
-    destination_id = database.FQNS[dest_fqn]
+    destination_id = database.FQNS.get(dest_fqn)
     destination = database.OBJECTS.get(destination_id)
     # Ensure the user exist and destination exits.
     if not (user and destination):
@@ -563,9 +593,9 @@ def build(name, description, user, exit_name=None, return_name=None,
     and the new location. Returns the new room's ID if successful, may raise
     exceptions if adding a room or exit fails their specific constraints.
     """
-    current_room_id = user["_meta"]["location"]
     new_room_id = add_room(name, description, user)
     if exit_name and return_name:
+        current_room_id = user["_meta"]["location"]
         current_room = database.OBJECTS[current_room_id]
         new_room = database.OBJECTS[new_room_id]
         add_exit(exit_name, exit_description, user, current_room,
