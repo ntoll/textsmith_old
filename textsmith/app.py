@@ -130,7 +130,6 @@ async def login(data):
             if logic.verify_password(user["_meta"]["password"], password):
                 if user["_meta"]["location"] is None:
                     await logic.nowhere(user_id)
-                await logic.look(user["_meta"]["location"], user)
                 return user_id
     return False
 

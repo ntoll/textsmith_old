@@ -1,6 +1,6 @@
 asynctest
 coverage
-markdown
+Markdown
 pycodestyle
 pyflakes
 pytest

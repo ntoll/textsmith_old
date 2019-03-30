@@ -45,5 +45,12 @@ $(document).ready(function(){
     function onMessageAdded(data) {
         // Just append the incoming message to the output section tag.
         $(".output").append(data);
+        // Ensure all links outside of this site open in a new browser tab.
+        $(document.links).filter(function() {
+            return this.hostname != window.location.hostname;
+        }).attr('target', '_blank');
+        // Scroll to the bottom of the page.
+        var element = document.getElementById("send");
+        element.scrollIntoView({block: "end"});
     }
 });

@@ -353,12 +353,12 @@ async def tell(user, room, message):
             recipient = split[0]
             # Check the recipient exists.
             if recipient not in database.USERS:
-                raise ValueError("I don't know who {recipient} is.")
+                raise ValueError(f"I don't know who {recipient} is.")
             recipient_id = database.USERS.get(recipient)
             recipient_obj = database.OBJECTS[recipient_id]
             # Check the recipient user is in the room.
             if recipient_obj["_meta"]["location"] != room["_meta"]["uuid"]:
-                raise ValueError("Can't do that, {recipient} isn't here.")
+                raise ValueError(f"Can't do that, {recipient} isn't here.")
             message = split[1]
             user_message = f'> You say to {recipient}, "*{message}*".'
             username = user["_meta"]["name"]

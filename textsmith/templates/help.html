@@ -112,7 +112,11 @@
 
     <pre>describe objectname A new description for the object</pre>
 
-    <p>Remember the description can be in Markdown format.</p>
+    <p>Remember the description can be in
+    <a href="https://daringfireball.net/projects/markdown/" target="_none">Markdown
+    format</a> (as can anything to be output to the game). Markdown is an
+    easy to read, easy to write text-to-html converter. Follow the link
+    for a quick tutorial.</p>
 
     <p>The cool thing about objects is that they have attributes, which
     become verbs in the game. Say, for example, you had a "trumpet" object
@@ -124,6 +128,25 @@
     kick in at this point, so objects could emote or write into the room or
     to specific players, but we didn't have time to finish it! It'll come in
     the next version. ;-)</p>
+
+    <h2 id="multimedia">Using Multimedia</h2>
+
+    <p>It's possible to embed images, audio and video into the world.</p>
+
+    <p>TextSmith does NOT host files for users. Links will need to be to
+    externally hosted multimedia assets.</p>
+
+    <p>To embed an image use the following markdown syntax:</p>
+
+    <pre>![alt text](/url/to/image.jpg)</pre>
+
+    <p>To embed audio use:</p>
+    
+    <pre>::audio[alt text](/url/to/sfx.mp3)</pre>
+
+    <p>Finally, to embed YouTube or Vimeo videos just include a link to the
+    page on the website for the video in question, and TextSmith will detect
+    and convert it to an embedded video.</p>
 
     <h2 id="objects">Making Objects</h2>
 
@@ -140,7 +163,8 @@
 
     <p>To add attributes use the following command:</p>
 
-    <pre>set object/fqn attributename Some value to associate with the attribute on that object.</pre>
+    <pre>set object/fqn attributename Some value to associate with the
+    attribute on that object.</pre>
 
     <p><strong>You must use the object's FQN</strong> when annotating.</p>
 

@@ -1020,7 +1020,9 @@ async def emit_to_user(user_id, message, raw=False):
     if raw:
         output = str(message)
     else:
-        output = markdown.markdown(str(message))
+        output = markdown.markdown(str(message),
+                                   extensions=["textsmith.mdx.video",
+                                               "textsmith.mdx.audio"])
     if user_id in database.CONNECTIONS:
         msg_bus = database.CONNECTIONS[user_id]
         msg_bus.append(output)
