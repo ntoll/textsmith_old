@@ -22,6 +22,7 @@ import hashlib
 import binascii
 import time
 import json
+import markdown
 import textsmith.database as database
 from quart import render_template_string
 from datetime import datetime
@@ -29,7 +30,7 @@ from datetime import datetime
 
 LOOK_TEMPLATE = """## {{name}}
 
-[**{{fqn}}**]
+[*{{fqn}}*]
 
 {% if alias %}
 Alias: {{ alias|join(', ') }}
@@ -38,9 +39,12 @@ Alias: {{ alias|join(', ') }}
 {{ description }}
 
 {% if typeof=="room" %}
-**You can see**: {{ contents|join(', ') }}
-
-**Exits**: {{ exits|join(', ') }}
+    {% if contents %}
+*You can see*: {{ contents|join(', ') }}
+    {% endif %}
+    {% if exits %}
+*Exits*: {{ exits|join(', ') }}
+    {% endif %}
 {% elif typeof=="exit" %}
 This leads to "{{ destination }}".
 {% elif typeof=="user" %}
@@ -277,7 +281,7 @@ def add_user(name, description, raw_password, email):
     public = True
     if name in database.USERS:
         raise ValueError("Username already exists.")
-    location = None  # A user's start location is "nowhere".
+    location = None
     inventory = []
     owns = [new_uuid, ]  # A user always owns themselves.
     fqns = [fqn, ]  # A user always owns themselves.
@@ -302,11 +306,19 @@ def get_object_from_context(name, room, user):
     contents of the referenced room or the user's inventory. Will also check
     item aliases when finding matches. The objects must be visible to the
     referenced user.
+
+    If the objectname is "me" or "myself" then return the user.
+
+    If the objectname is "here" or "room" then return the room.
     """
     result = []
     if name is None:
         return result
-    if "/" in name:
+    elif name in ("me", "myself"):
+        return [user, ]
+    elif name in ("here", "room"):
+        return [room, ]
+    elif "/" in name:
         # We're looking for a FQN!
         # FQN = Fully Qualified Name (i.e. an unambiguous unique name of the
         # form ownername/objectname - hence checking for backslash).
@@ -410,7 +422,7 @@ def delete_object(uuid, user):
     return False
 
 
-def delete_room(uuid, user):
+async def delete_room(uuid, user):
     """
     Given a room's UUID and an object representing the user requesting the
     deletion of the room, attempt to delete the room. This can only work if
@@ -439,6 +451,7 @@ def delete_room(uuid, user):
                             # It's a user. So set location to "None" (default
                             # starting state).
                             obj["_meta"]["location"] = None
+                            await nowhere(item_id)
                         else:
                             # It's some other sort of object. Add it to the
                             # inventory of the user who owns the object (so the
@@ -508,6 +521,16 @@ def delete_exit(uuid, user, force=False):
     return False
 
 
+async def nowhere(user_id):
+    """
+    Handle a case where the user finds themselves nowhere.
+
+    This involves putting them into the "genesis room" (lovely name huh?) which
+    is automatically created if no database already exists.
+    """
+    await teleport(user_id, database.DEFAULT_ROOM)
+
+
 async def move(obj_id, exit_id, user_id):
     """
     Move the referenced object, via the referenced exit from one room to
@@ -551,6 +574,7 @@ async def move(obj_id, exit_id, user_id):
         obj["_meta"]["location"] = destination_id
         leave_user = exit["leave_user"].format(username=obj["_meta"]["name"])
         await emit_to_user(obj_id, leave_user)
+        await look(destination_id, user)
     leave_room = exit["leave_room"].format(username=obj["_meta"]["name"])
     await emit_to_room(source_id, leave_room, exclude=exclude)
     arrive_room = exit["arrive_room"].format(username=obj["_meta"]["name"])
@@ -571,17 +595,21 @@ async def teleport(user_id, dest_fqn):
     if user_id in destination["_meta"]["contents"]:
         raise ValueError("Cannot teleport user to their current location.")
     # Change the state to reflect the teleportation.
-    current_room_id = user["_meta"]["location"]
-    current_room = database.OBJECTS[current_room_id]
-    current_room["_meta"]["contents"].remove(user_id)
-    current_room["_meta"]["fqns"].remove(user["_meta"]["fqn"])
+    current_room_id = user["_meta"].get("location")
+    if current_room_id:
+        current_room = database.OBJECTS[current_room_id]
+        current_room["_meta"]["contents"].remove(user_id)
+        current_room["_meta"]["fqns"].remove(user["_meta"]["fqn"])
     destination["_meta"]["contents"].append(user_id)
     destination["_meta"]["fqns"].append(user["_meta"]["fqn"])
     user["_meta"]["location"] = destination_id
     username = user["_meta"]["name"]
-    await emit_to_user(user_id, "You teleport away.")
-    await emit_to_room(current_room_id, f"{username} teleports away.",
-                       exclude=[user_id, ])
+    destname = destination["_meta"]["name"]
+    await emit_to_user(user_id, f"You teleport to {destname}...")
+    await look(destination_id, user)
+    if current_room_id:
+        await emit_to_room(current_room_id, f"{username} teleports away.",
+                           exclude=[user_id, ])
     await emit_to_room(destination_id, f"{username} teleports in.",
                        exclude=[user_id, ])
 
@@ -821,6 +849,7 @@ async def detail(obj_fqn, user):
             location = "Unknown"
             if obj["_meta"]["location"]:
                 location = database.OBJECTS[obj["_meta"]["location"]]
+                location = location["_meta"]["fqn"]
             context.update({
                 "inventory": ", ".join(inventory),
                 "owns": ", ".join(owns),
@@ -988,6 +1017,13 @@ async def emit_to_user(user_id, message, raw=False):
     Emit a message to the referenced user. All messages are run through
     Markdown unless raw is True.
     """
-    ws = database.CONNECTIONS.get(user_id)
-    if ws:
-        await ws.send(str(message))
+    if raw:
+        output = str(message)
+    else:
+        output = markdown.markdown(str(message))
+    if user_id in database.CONNECTIONS:
+        msg_bus = database.CONNECTIONS[user_id]
+        msg_bus.append(output)
+    else:
+        msg_bus = [output, ]
+        database.CONNECTIONS[user_id] = msg_bus

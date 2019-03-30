@@ -606,3 +606,676 @@ async def test_get_objects_replace_indirect_obj_multi_matches(game_world):
     args = 'dobj prep objectname'
     with pytest.raises(ValueError):
         await parser.get_objects(user, room, args)
+
+
+@pytest.mark.asyncio
+async def test_say(game_world):
+    """
+    Ensure the message is emitted to both the user and room in the expected
+    manner.
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu, \
+            asynctest.patch("textsmith.logic.emit_to_room") as mock_etr:
+        await parser.say(user, room, "hello")
+        assert mock_etu.call_count == 1
+        assert mock_etr.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_shout(game_world):
+    """
+    Ensure the message is emitted to both the user and room in the expected
+    manner.
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu, \
+            asynctest.patch("textsmith.logic.emit_to_room") as mock_etr:
+        await parser.shout(user, room, "hello")
+        assert mock_etu.call_count == 1
+        assert mock_etr.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_emote(game_world):
+    """
+    Ensure the message is emitted to both the user and room in the expected
+    manner.
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.emit_to_room") as mock_etr:
+        await parser.emote(user, room, "smiles")
+        assert mock_etr.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_tell(game_world):
+    """
+    Ensure the message is emitted to both the user and room in the expected
+    manner.
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu, \
+            asynctest.patch("textsmith.logic.emit_to_room") as mock_etr:
+        await parser.tell(user, room, "username hello")
+        assert mock_etu.call_count == 2
+        assert mock_etr.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_tell_no_such_recipient(game_world):
+    """
+    Can't tell anything to a non-existent user.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(ValueError):
+        await parser.tell(user, room, "nemo hello")
+
+
+@pytest.mark.asyncio
+async def test_tell_recipient_not_in_room(game_world):
+    """
+    Can't tell anything to a user who's not in the current room.
+    """
+    user, obj, room, exit = game_world
+    user2 = logic.add_user("missing", "description", "password",
+                           "mail@example.com")
+    with pytest.raises(ValueError):
+        await parser.tell(user, room, "missing hello")
+
+
+@pytest.mark.asyncio
+async def test_create_not_enough_args(game_world):
+    """
+    If there's not enough args to properly create an object, raise a
+    RuntimeError.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(RuntimeError):
+        await parser.create(user, room, "wrong")
+
+
+@pytest.mark.asyncio
+async def test_create(game_world):
+    """
+    If an object is created then a message is emitted to the user.
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        await parser.create(user, room, "objname2 description of room")
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_build_not_enough_args(game_world):
+    """
+    If there's not enough args to properly build a room, raise a RuntimeError.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(RuntimeError):
+        await parser.build(user, room, "wrong")
+
+
+@pytest.mark.asyncio
+async def test_build(game_world):
+    """
+    If an object is created then a message is emitted to the user.
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        await parser.build(user, room, "roomname2 description of room")
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_connect_not_enough_args(game_world):
+    """
+    If there's not enough args to properly connect an exit, raise a
+    RuntimeError.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(RuntimeError):
+        await parser.connect(user, room, "wrong number")
+
+
+@pytest.mark.asyncio
+async def test_connect_target_room_does_not_exist(game_world):
+    """
+    If the target room doesn't exist, raise an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(ValueError):
+        await parser.connect(user, room, "foo/bar exitname description.")
+
+
+@pytest.mark.asyncio
+async def test_connect(game_world):
+    """
+    If an exit is created then a message is emitted to the user.
+    """
+    user, obj, room, exit = game_world
+    room2 = logic.add_room("room2", "description", user)
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        command = "username/room2 exit2 description of exit"
+        await parser.connect(user, room, command)
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_describe_unknown_object(game_world):
+    """
+    If the wrong number of args for the command are encountered, raise an
+    error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(ValueError):
+        await parser.describe(user, room, "foo bar")
+
+
+@pytest.mark.asyncio
+async def test_describe_wrong_number_of_args(game_world):
+    """
+    If the wrong number of args for the command are encountered, raise an
+    error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(RuntimeError):
+        await parser.describe(user, room, "foo")
+
+
+@pytest.mark.asyncio
+async def test_describe_cannot_identify_unique_object(game_world):
+    """
+    If the wrong number of args for the command are encountered, raise an
+    error.
+    """
+    user, obj, room, exit = game_world
+    other_obj_id = logic.add_object("obj2", "description", user)
+    other_obj = database.OBJECTS[other_obj_id]
+    other_obj["_meta"]["alias"].append("objectname")
+    with pytest.raises(ValueError):
+        await parser.describe(user, room, "objectname a new description")
+
+
+@pytest.mark.asyncio
+async def test_describe(game_world):
+    """
+    Update the description of the referenced object.
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        await parser.describe(user, room, "objectname A new description.")
+        assert mock_etu.call_count == 1
+        assert obj["description"] == "A new description."
+
+
+@pytest.mark.asyncio
+async def test_delete_object(game_world):
+    """
+    Deleting a single object should remove it from the database.
+    """
+    user, obj, room, exit = game_world
+    obj_id = obj["_meta"]["uuid"]
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        await parser.delete(user, room, "username/objectname")
+        assert obj_id not in database.OBJECTS
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_delete_room(game_world):
+    """
+    Deleting a room should remove it from the database.
+    """
+    user, obj, room, exit = game_world
+    room_id = room["_meta"]["uuid"]
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        await parser.delete(user, room, "username/roomname")
+        assert room_id not in database.OBJECTS
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_delete_exit(game_world):
+    """
+    Deleting an exit should remove it from the database.
+    """
+    user, obj, room, exit = game_world
+    exit_id = exit["_meta"]["uuid"]
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        await parser.delete(user, room, "username/exitname")
+        assert exit_id not in database.OBJECTS
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_delete_user_fails(game_world):
+    """
+    Deleting a user should fail.
+    """
+    user, obj, room, exit = game_world
+    user_id = user["_meta"]["uuid"]
+    with pytest.raises(ValueError):
+        await parser.delete(user, room, "username/username")
+
+
+@pytest.mark.asyncio
+async def test_delete_logic_error(game_world):
+    """
+    If a constraint for deletion isn't met, complain.
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.delete_object", return_value=False):
+        with pytest.raises(RuntimeError):
+            await parser.delete(user, room, "username/objectname")
+
+
+@pytest.mark.asyncio
+async def test_delete_non_existent_object_fails(game_world):
+    """
+    Deleting a non-existent object should fail.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(ValueError):
+        await parser.delete(user, room, "username/foobar")
+
+
+@pytest.mark.asyncio
+async def test_delete_object_attr(game_world):
+    """
+    Deleting an object attribute should remove it from the object.
+    """
+    user, obj, room, exit = game_world
+    obj["foo"] = "bar"
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        await parser.delete(user, room, "username/objectname foo")
+        assert "foo" not in obj
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_delete_object_special_attr(game_world):
+    """
+    Deleting an object attribute on the no_delete list (_meta, and description)
+    results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(RuntimeError):
+        await parser.delete(user, room, "username/objectname _meta")
+
+
+@pytest.mark.asyncio
+async def test_delete_object_attr_unknown_object(game_world):
+    """
+    Deleting an object attribute on an unknown object results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(ValueError):
+        await parser.delete(user, room, "username/foobar foo")
+
+
+@pytest.mark.asyncio
+async def test_delete_wrong_number_of_args(game_world):
+    """
+    Wrong number of args results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(RuntimeError):
+        await parser.delete(user, room, "username/objectname foo bar baz")
+
+
+@pytest.mark.asyncio
+async def test_teleport(game_world):
+    """
+    Teleporting works!
+    """
+    user, obj, room, exit = game_world
+    user["_meta"]["location"] = None  # Test as if a completely new user.
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        await parser.teleport(user, room, "username/roomname")
+        assert user["_meta"]["location"] == room["_meta"]["uuid"]
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_teleport_wrong_number_of_args(game_world):
+    """
+    Wrong number of args results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(RuntimeError):
+        await parser.teleport(user, room, "foo bar baz")
+
+
+@pytest.mark.asyncio
+async def test_teleport_unknown_room(game_world):
+    """
+    Unknown room results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(ValueError):
+        await parser.teleport(user, room, "foo/bar")
+
+
+@pytest.mark.asyncio
+async def test_teleport_not_a_room(game_world):
+    """
+    Teleporting to not-a-room results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(TypeError):
+        await parser.teleport(user, room, "username/objectname")
+
+
+@pytest.mark.asyncio
+async def test_clone(game_world):
+    """
+    Cloning works!
+    """
+    user, obj, room, exit = game_world
+    obj["foo"] = "bar"
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        await parser.clone(user, room, "username/objectname tuba")
+        assert "username/tuba" in database.FQNS
+        tuba_id = database.FQNS["username/tuba"]
+        tuba = database.OBJECTS[tuba_id]
+        assert tuba["foo"] == "bar"
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_clone_wrong_number_of_args(game_world):
+    """
+    Wrong number of args results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(RuntimeError):
+        await parser.clone(user, room, "foo bar baz")
+
+
+@pytest.mark.asyncio
+async def test_clone_unknown_room(game_world):
+    """
+    Unknown object results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(ValueError):
+        await parser.clone(user, room, "foo/bar baz")
+
+
+@pytest.mark.asyncio
+async def test_clone_not_an_object(game_world):
+    """
+    Cloning not-an-object results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(TypeError):
+        await parser.clone(user, room, "username/roomname test")
+
+
+@pytest.mark.asyncio
+async def test_clone_logic_error(game_world):
+    """
+    If a constraint for cloning isn't met, complain.
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.clone", return_value=False):
+        with pytest.raises(RuntimeError):
+            await parser.clone(user, room, "username/objectname test")
+
+
+@pytest.mark.asyncio
+async def test_inventory(game_world):
+    """
+    Inventory works!
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        await parser.inventory(user, room, "")
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_take(game_world):
+    """
+    Taking works!
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        await parser.take(user, room, "objectname")
+        assert obj["_meta"]["uuid"] in user["_meta"]["inventory"]
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_take_wrong_number_of_args(game_world):
+    """
+    Wrong number of args results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(RuntimeError):
+        await parser.take(user, room, "foo bar baz")
+
+
+@pytest.mark.asyncio
+async def test_take_unknown_object(game_world):
+    """
+    Unknown object results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(ValueError):
+        await parser.take(user, room, "foo")
+
+
+@pytest.mark.asyncio
+async def test_take_not_an_object(game_world):
+    """
+    Taking not-an-object results in an error.
+    """
+    user, obj, room, exit = game_world
+    obj2_id = logic.add_object("obj2", "description", user)
+    obj2 = database.OBJECTS[obj2_id]
+    obj2["_meta"]["alias"].append("objectname")
+    with pytest.raises(ValueError):
+        await parser.take(user, room, "objectname")
+
+
+@pytest.mark.asyncio
+async def test_take_logic_error(game_world):
+    """
+    If a constraint for taking isn't met, complain.
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.take", return_value=False):
+        with pytest.raises(RuntimeError):
+            await parser.take(user, room, "objectname")
+
+
+@pytest.mark.asyncio
+async def test_drop(game_world):
+    """
+    Dropping works!
+    """
+    user, obj, room, exit = game_world
+    logic.take(obj["_meta"]["uuid"], user)
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        await parser.drop(user, room, "objectname")
+        assert obj["_meta"]["uuid"] not in user["_meta"]["inventory"]
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_drop_wrong_number_of_args(game_world):
+    """
+    Wrong number of args results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(RuntimeError):
+        await parser.drop(user, room, "foo baz")
+
+
+@pytest.mark.asyncio
+async def test_drop_unknown_object(game_world):
+    """
+    Unknown object results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(ValueError):
+        await parser.drop(user, room, "foo")
+
+
+@pytest.mark.asyncio
+async def test_drop_logic_error(game_world):
+    """
+    If a constraint for dropping isn't met, complain.
+    """
+    user, obj, room, exit = game_world
+    logic.take(obj["_meta"]["uuid"], user)
+    with asynctest.patch("textsmith.logic.drop", return_value=False):
+        with pytest.raises(RuntimeError):
+            await parser.drop(user, room, "objectname")
+
+
+@pytest.mark.asyncio
+async def test_annotate(game_world):
+    """
+    Setting an attribute works!
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        await parser.annotate(user, room, "username/objectname foo bar")
+        assert obj["foo"] == "bar"
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_annotate_wrong_number_of_args(game_world):
+    """
+    Wrong number of args results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(RuntimeError):
+        await parser.annotate(user, room, "foo bar")
+
+
+@pytest.mark.asyncio
+async def test_annotate_unknown_object(game_world):
+    """
+    Unknown object results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(ValueError):
+        await parser.annotate(user, room, "foo bar baz")
+
+
+@pytest.mark.asyncio
+async def test_annotate_logic_error(game_world):
+    """
+    If a constraint for annotating isn't met, complain.
+    """
+    user, obj, room, exit = game_world
+    logic.take(obj["_meta"]["uuid"], user)
+    with asynctest.patch("textsmith.logic.set_attribute", return_value=False):
+        with pytest.raises(RuntimeError):
+            await parser.annotate(user, room, "username/objectname foo bar")
+
+
+@pytest.mark.asyncio
+async def test_look_here(game_world):
+    """
+    Looking works!
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        async with app.app_context():
+            await parser.look(user, room, "")
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_look_object(game_world):
+    """
+    Looking at an object works!
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        async with app.app_context():
+            await parser.look(user, room, "objectname")
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_look_wrong_number_of_args(game_world):
+    """
+    Wrong number of args results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(RuntimeError):
+        await parser.look(user, room, "foo bar")
+
+
+@pytest.mark.asyncio
+async def test_look_unknown_object(game_world):
+    """
+    Unknown object results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(ValueError):
+        await parser.look(user, room, "foo")
+
+
+@pytest.mark.asyncio
+async def test_look_cannot_identify_unique_object(game_world):
+    """
+    If the wrong number of args for the command are encountered, raise an
+    error.
+    """
+    user, obj, room, exit = game_world
+    other_obj_id = logic.add_object("obj2", "description", user)
+    other_obj = database.OBJECTS[other_obj_id]
+    other_obj["_meta"]["alias"].append("objectname")
+    with pytest.raises(ValueError):
+        await parser.look(user, room, "objectname")
+
+
+@pytest.mark.asyncio
+async def test_detail_object(game_world):
+    """
+    Examining at an object works!
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        async with app.app_context():
+            await parser.detail(user, room, "username/objectname")
+        assert mock_etu.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_detail_unknown_fqn(game_world):
+    """
+    Unknown object results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(ValueError):
+        await parser.detail(user, room, "bar")
+
+
+@pytest.mark.asyncio
+async def test_detail_wrong_number_of_args(game_world):
+    """
+    Wrong number of args results in an error.
+    """
+    user, obj, room, exit = game_world
+    with pytest.raises(RuntimeError):
+        await parser.detail(user, room, "foo bar")
+
+
+@pytest.mark.asyncio
+async def test_help(game_world):
+    """
+    Setting an attribute works!
+    """
+    user, obj, room, exit = game_world
+    with asynctest.patch("textsmith.logic.emit_to_user") as mock_etu:
+        await parser.show_help(user, room, "")
+        assert mock_etu.call_count == 1

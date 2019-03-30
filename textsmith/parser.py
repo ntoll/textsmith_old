@@ -323,7 +323,7 @@ async def shout(user, room, message):
     Say a message to the the whole room.
     """
     if message:
-        user_message = f'> you shout , "**{message}**".'
+        user_message = f'> You shout , "**{message}**".'
         username = user["_meta"]["name"]
         room_message = f'> {username} shouts, "**{message}**".'
         user_id = user["_meta"]["uuid"]
@@ -339,9 +339,8 @@ async def emote(user, room, message):
     if message:
         username = user["_meta"]["name"]
         emote = f'{username} {message}'
-        user_id = user["_meta"]["uuid"]
         room_id = room["_meta"]["uuid"]
-        await logic.emit_to_room(room_id, message)
+        await logic.emit_to_room(room_id, emote)
 
 
 async def tell(user, room, message):
@@ -352,22 +351,25 @@ async def tell(user, room, message):
         split = message.split(" ", 1)
         if len(split) == 2:
             recipient = split[0]
-            recipient_obj = database.USERS.get(recipient)
             # Check the recipient exists.
-            if recipient_obj is None:
+            if recipient not in database.USERS:
                 raise ValueError("I don't know who {recipient} is.")
+            recipient_id = database.USERS.get(recipient)
+            recipient_obj = database.OBJECTS[recipient_id]
             # Check the recipient user is in the room.
             if recipient_obj["_meta"]["location"] != room["_meta"]["uuid"]:
                 raise ValueError("Can't do that, {recipient} isn't here.")
             message = split[1]
             user_message = f'> You say to {recipient}, "*{message}*".'
             username = user["_meta"]["name"]
+            recipient_message = f'> {username} says, "*{message}*" to you.'
             room_message = f'> {username} says to {recipient}, "*{message}*".'
             user_id = user["_meta"]["uuid"]
             room_id = room["_meta"]["uuid"]
             await logic.emit_to_user(user_id, user_message)
+            await logic.emit_to_user(recipient_id, recipient_message)
             await logic.emit_to_room(room_id, room_message,
-                                     exclude=[user_id, ])
+                                     exclude=[user_id, recipient_id])
 
 
 async def create(user, room, message):
@@ -413,21 +415,323 @@ async def connect(user, room, message):
 
     connect room/fqn exitname A description of the new exit.
     """
-    split_message = message.split(' ', 3)
+    split_message = message.split(' ', 2)
     if len(split_message) == 3:
         destination_fqn = split_message[0]
-        destination = database.FQNS[destination_fqn]
+        destination_id = database.FQNS.get(destination_fqn)
+        if destination_id is None:
+            raise ValueError(f"The room {destination_fqn} does not exist.")
+        destination = database.OBJECTS[destination_id]
         exitname = split_message[1]
         description = split_message[2]
-        exit_id = logic.add_exit(name, description, user, room, destination)
+        exit_id = logic.add_exit(exitname, description, user, room,
+                                 destination)
         exit = database.OBJECTS[exit_id]
         fqn = exit["_meta"]["fqn"]
         sname = room["_meta"]["name"]  # source room name.
         dname = destination["_meta"]["name"]  # destination room name.
-        msg = f"Created new exit {name} ({fqn}) from {sname} to {dname}."
+        msg = f"Created new exit {exitname} ({fqn}) from {sname} to {dname}."
         return await logic.emit_to_user(user["_meta"]["uuid"], msg)
     else:
         raise RuntimeError("Not enough arguments to create object.")
+
+
+async def describe(user, room, message):
+    """
+    Of the form:
+
+    describe objectname A description of the object.
+    """
+    split_message = message.split(' ', 1)
+    if len(split_message) == 2:
+        name = split_message[0]
+        matches = logic.get_object_from_context(name, room, user)
+        if len(matches) == 1:
+            obj_id = matches[0]["_meta"]["uuid"]
+            description = split_message[1]
+            if logic.set_attribute(obj_id, user, "description", description):
+                msg = "Description updated."
+                return await logic.emit_to_user(user["_meta"]["uuid"], msg)
+            else:
+                raise PermissionError("You can't do that.")
+        elif matches:
+            # Too many matches, tell the user to disambiguate.
+            matches = [x["_meta"]["name"] + "(" + x["_meta"]["fqn"] + ")"
+                       for x in matches]
+            msg = ("Multiple matches (via direct object name or alias). "
+                   "Please disambiguate between: " + ', '.join(matches))
+            raise ValueError(msg)
+        else:
+            raise ValueError("No such object.")
+    else:
+        raise RuntimeError("Not enough arguments to describe object.")
+
+
+async def delete(user, room, message):
+    """
+    Of two forms:
+
+    1. Delete an object/room/exit:
+
+    delete object/fqn
+
+    2. Delete an attribute from an object:
+
+    delete object/fqn attributename
+    """
+    split_message = message.split()
+    if len(split_message) == 1:
+        # Delete an object.
+        obj_fqn = split_message[0]
+        obj_id = database.FQNS.get(obj_fqn)
+        if obj_id:
+            obj = database.OBJECTS[obj_id]
+            typeof = obj["_meta"]["typeof"]
+            result = False
+            if typeof == "object":
+                # Delete a vanilla object.
+                result = logic.delete_object(obj_id, user)
+            elif typeof == "room":
+                # Delete a room.
+                result = await logic.delete_room(obj_id, user)
+            elif typeof == "exit":
+                # Delete an exit.
+                result = logic.delete_exit(obj_id, user)
+            else:
+                # You can't delete users!
+                raise ValueError("You cannot delete users.")
+            name = obj["_meta"]["fqn"]
+            if result:
+                msg = f"Deleted {name}."
+                return await logic.emit_to_user(user["_meta"]["uuid"], msg)
+            else:
+                raise RuntimeError(f"Could not delete {name}.")
+        else:
+            raise ValueError(f"There is no object called {obj_fqn}.")
+    elif len(split_message) == 2:
+        # Delete an attribute from an object.
+        obj_fqn = split_message[0]
+        obj_id = database.FQNS.get(obj_fqn)
+        if obj_id:
+            obj = database.OBJECTS[obj_id]
+            attr = split_message[1]
+            no_delete = ["_meta", "description"]
+            if attr not in no_delete:
+                del obj[attr]
+                msg = f"Deleted {attr} from the object {obj_fqn}."
+                return await logic.emit_to_user(user["_meta"]["uuid"], msg)
+            else:
+                raise RuntimeError("You cannot delete that attribute.")
+        else:
+            raise ValueError(f"There is no object called {obj_fqn}.")
+    else:
+        raise RuntimeError("Wrong number of arguments to delete an object "
+                           "or attribute.")
+
+
+async def teleport(user, room, message):
+    """
+    Of the form:
+
+    teleport room/fqn
+    """
+    split_message = message.split()
+    if len(split_message) == 1:
+        fqn = split_message[0]
+        obj_id = database.FQNS.get(fqn)
+        if obj_id:
+            obj = database.OBJECTS[obj_id]
+            if obj["_meta"]["typeof"] == "room":
+                return await logic.teleport(user["_meta"]["uuid"], fqn)
+            else:
+                raise TypeError("You can only teleport to a room.")
+        else:
+            raise ValueError(f"No room called {fqn}.")
+    else:
+        raise RuntimeError("Wrong number of arguments to teleport.")
+
+
+async def clone(user, room, message):
+    """
+    Of the form:
+
+    clone object/fqn newname
+    """
+    split_message = message.split()
+    if len(split_message) == 2:
+        fqn = split_message[0]
+        obj_id = database.FQNS.get(fqn)
+        target = split_message[1]
+        if obj_id:
+            obj = database.OBJECTS[obj_id]
+            if obj["_meta"]["typeof"] == "object":
+                if logic.clone(obj_id, target, user):
+                    msg = f"Cloned object {fqn} as {target}"
+                    return await logic.emit_to_user(user["_meta"]["uuid"], msg)
+                else:
+                    raise RuntimeError(f"Could not clone {fqn}.")
+            else:
+                raise TypeError("You can only clone an object.")
+        else:
+            raise ValueError(f"No object called {fqn}.")
+    else:
+        raise RuntimeError("Wrong number of arguments to clone.")
+
+
+async def inventory(user, room, message):
+    """
+    Of the form:
+
+    inventory
+    """
+    items = [database.OBJECTS[i]["_meta"]["name"]
+             for i in user["_meta"]["inventory"]]
+    msg = f"You are carrying: {items}"
+    return await logic.emit_to_user(user["_meta"]["uuid"], msg)
+
+
+async def take(user, room, message):
+    """
+    Of the form:
+
+    take objectname
+    """
+    split_message = message.split()
+    if len(split_message) == 1:
+        name = split_message[0]
+        matches = logic.get_object_from_context(name, room, user)
+        if len(matches) == 1:
+            obj_id = matches[0]["_meta"]["uuid"]
+            if logic.take(obj_id, user):
+                msg = "You take the {name}."
+                return await logic.emit_to_user(user["_meta"]["uuid"], msg)
+            else:
+                raise RuntimeError("You can't take the {name}.")
+        elif matches:
+            # Too many matches, tell the user to disambiguate.
+            matches = [x["_meta"]["name"] + "(" + x["_meta"]["fqn"] + ")"
+                       for x in matches]
+            msg = ("Multiple matches (via direct object name or alias). "
+                   "Please disambiguate between: " + ', '.join(matches))
+            raise ValueError(msg)
+        else:
+            raise ValueError("No such object.")
+    else:
+        raise RuntimeError("Wrong number of arguments to take an object.")
+
+
+async def drop(user, room, message):
+    """
+    Of the form:
+
+    drop objectname
+    """
+    split_message = message.split()
+    if len(split_message) == 1:
+        name = split_message[0]
+        for obj_id in user["_meta"]["inventory"]:
+            obj = database.OBJECTS[obj_id]
+            if obj["_meta"]["name"] == name:
+                if logic.drop(obj_id, user):
+                    usr_msg = f"You drop the {name}."
+                    username = user["_meta"]["name"]
+                    room_msg = f"{username} drops {name} here."
+                    user_id = user["_meta"]["uuid"]
+                    room_id = room["_meta"]["uuid"]
+                    await logic.emit_to_user(user_id, usr_msg)
+                    await logic.emit_to_room(room_id, room_msg,
+                                             exclude=[user_id, ])
+                    break
+                else:
+                    raise RuntimeError(f"You can't drop {name} here.")
+        else:
+            raise ValueError("No such object.")
+    else:
+        raise RuntimeError("Wrong number of arguments to take an object.")
+
+
+async def annotate(user, room, message):
+    """
+    Of the form:
+
+    set object/fqn attr Some value to place in the attribute on the object.
+    """
+    split_message = message.split(' ', 2)
+    if len(split_message) == 3:
+        obj_fqn = split_message[0]
+        obj_id = database.FQNS.get(obj_fqn)
+        if obj_id is None:
+            raise ValueError(f"The object {obj_fqn} does not exist.")
+        attribute = split_message[1]
+        value = split_message[2]
+        if logic.set_attribute(obj_id, user, attribute, value):
+            msg = f"Annotated attribute {attribute} onto object {obj_fqn}."
+            return await logic.emit_to_user(user["_meta"]["uuid"], msg)
+        else:
+            raise RuntimeError(f"You can't annotate the object {obj_fqn}.")
+    else:
+        raise RuntimeError("Not enough arguments to create object.")
+
+
+async def look(user, room, message):
+    """
+    Of the form:
+
+    look objectname
+
+    or (for the current room):
+
+    look
+    """
+    split_message = message.split()
+    name = ""
+    if len(split_message) == 0:
+        name = "here"
+    if len(split_message) == 1:
+        name = split_message[0]
+    if name:
+        matches = logic.get_object_from_context(name, room, user)
+        if len(matches) == 1:
+            obj_id = matches[0]["_meta"]["uuid"]
+            return await logic.look(obj_id, user)
+        elif matches:
+            # Too many matches, tell the user to disambiguate.
+            matches = [x["_meta"]["name"] + "(" + x["_meta"]["fqn"] + ")"
+                       for x in matches]
+            msg = ("Multiple matches (via direct object name or alias). "
+                   "Please disambiguate between: " + ', '.join(matches))
+            raise ValueError(msg)
+        else:
+            raise ValueError("No such object.")
+    else:
+        raise RuntimeError("Wrong number of arguments to look.")
+
+
+async def detail(user, room, message):
+    """
+    Of the form:
+
+    detail object/fqn
+    """
+    split_message = message.split()
+    if len(split_message) == 1:
+        fqn = split_message[0]
+        if fqn in database.FQNS:
+            return await logic.detail(fqn, user)
+        else:
+            raise ValueError("Unknown object.")
+    else:
+        raise RuntimeError("Wrong number of arguments for object details.")
+
+
+async def show_help(user, room, message):
+    """
+    Of the form:
+
+    help
+    """
+    msg = "Help is available [on this page](/help)."
+    return await logic.emit_to_user(user["_meta"]["uuid"], msg)
 
 
 # Contain references to the game's builtin functions.
@@ -438,48 +742,49 @@ BUILTINS = {
     ("build", ): build,
     # Connect two rooms together.
     ("connect", "co"): connect,
+    # Set the description of an object/room/exit/user.
+    ("describe", "desc"): describe,
+    # Destroy an object or delete an attribute on an object.
+    ("remove", "delete", "destroy", "rm", "del", ): delete,
+    # Teleport the user somewhere else.
+    ("teleport", ): teleport,
+    # Clone an object.
+    ("clone", "copy", "cp", ): clone,
+    # List the objects in the user's inventory which are visible.
+    ("inventory", "inv", ): inventory,
+    # Take an object from the room into the user's inventory.
+    ("take", "get", ): take,
+    # Drop an object from the user's inventory into the room.
+    ("drop", "leave", ): drop,
+    # Set an attribute on an object with associated value.
+    ("set", "attr", "annotate"): annotate,
+    # Look at either the current room or a specific object.
+    ("look", "lk", "l"): look,
+    # Get a detailed summary of the specified object or current room.
+    ("detail", "examine", "ex"): detail,
+    # Display a link to help.
+    ("help", "?"): show_help,
 }
 
 """
-    elif verb in ["connect", "co", ]:
-        # Connect the current room to another via an exit.
-        return await connect(user, room verb
-    elif verb in ["describe", "desc", ]:
-        # Set the description of an object/room/exit.
-    elif verb in ["visibility", "viz", "vis", ]:
-        # Set the visibility of an object.
-    elif verb in ["remove", "delete", "destroy", "rm", "del", ]:
-        # Destroy an object or delete an attribute on an object.
-    elif verb in ["go", "move", "exit", "mv", ]:
-        # Move to another place via an exit.
-    elif verb == "teleport":
-        # Teleport the user somewhere else.
-    elif verb in ["clone", "copy", "cp", ]:
-        # Clone an object.
-    elif verb in ["inventory", "inv", ]:
-        # List the objects in the user's inventory which are visible.
-    elif verb in ["take", "get", ]:
-        # Take an object from the room into the user's inventory.
-    elif verb == "give":
-        # Give an object to another user.
-    elif verb in ["drop", "leave", ]:
-        # Drop an object from the user's inventory into the room.
-    elif verb in ["look", "lk", "l", ]:
-        # Look at either the current room or a specific object.
-    elif verb in ["detail", "examine", "det", "dtl", ]:
-        # Get a detailed summary of the specified object or current room.
-    elif verb in ["addalias", "alias+", "ali+", ]:
-        # Add an alias to the specified object.
-    elif verb in ["rmalias", "alias-", "ali-", ]:
-        # Remove an alias from the specified object.
-    elif verb in ["set", "attr", ]:
-        # Set an attribute on an object with associated value.
-    elif verb in ["addallow", "allow+", "alw+", ]:
-        # Add a user to the allow list for the current room.
-    elif verb in ["rmallow", "allow-", "alw-", ]:
-        # Remove a user from the allow list for the current room.
-    elif verb in ["addexclude", "exclude+", "ex+"]:
-        # Add a user to the exclude list for the current room.
-    elif verb in ["rmexclude", "exclude-", "ex-"]:
-        # Remove a user from the exclude list for the current room.
+To be added at a later time...
+
+    # Set the visibility of an object.
+    ["visibility", "viz", "vis", ]:
+    # Move to another place via an exit.
+    ["go", "move", "exit", "mv", ]:
+    # Give an object to another user.
+    ["give", ]:
+    # Add an alias to the specified object.
+    ["addalias", "alias+", "ali+", ]:
+    # Remove an alias from the specified object.
+    ["rmalias", "alias-", "ali-", ]:
+    # Add a user to the allow list for the current room.
+    ["addallow", "allow+", "alw+", ]:
+    # Remove a user from the allow list for the current room.
+    ["rmallow", "allow-", "alw-", ]:
+    # Add a user to the exclude list for the current room.
+    ["addexclude", "exclude+", "ex+"]:
+    # Remove a user from the exclude list for the current room.
+    ["rmexclude", "exclude-", "ex-"]:
 """

@@ -6,16 +6,15 @@
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/tufte.css') }}">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/latex.css') }}">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        {% block head %}{% endblock %}
     </head>
     <body>
         <article>
-            <h1>TextSmith</h1>
-            <p class="subtitle">Create and inhabit interactive textual
-            worlds.</p>
             {% block content %}{% endblock %}
         </article>
         <footer>
-            &copy; 2019 Nicholas Tollervey and Andrew Smith.
+            <a href="/">TextSmith</a> is &copy; 2019 Nicholas Tollervey and
+            Andrew Smith.
         </footer>
     </body>
 </html>

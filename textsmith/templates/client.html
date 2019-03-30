@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block head %}
+    <script
+        src="https://code.jquery.com/jquery-2.2.4.min.js"
+        integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+        crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/client.js') }}"></script>
+    <style>
+    section {
+        position: fixed;
+        bottom: 200px;
+    }
+    footer {
+        position: fixed;
+        bottom: 0;
+    }
+    .userinput {
+        width: 100%;
+        position: fixed;
+        bottom: 32px;
+    }
+    #input {
+        font-size: 1.4rem;
+        width: 50%;
+    }
+    </style>
+{% endblock %}
+{% block content %}
+<section class="output">
+    <h1>TextSmith</h1>
+    <p class="subtitle">Create and inhabit interactive textual
+    worlds.</p>
+    <p>Login with the command:</p>
+    <pre>login username password</pre>
+    <p>(Remember to replace "username" and "password" with your actual username
+    and password.)</p>
+</section>
+<div class="userinput">
+<textarea id="input" rows="5" autofocus
+    placeholder="Type your commands here..."></textarea><br/>
+<button id="send">Send</button> Click "Send" or CTRL-Enter to submit. Markdown
+syntax will work for displayed text.
+</div>
+{% endblock %}
+
+

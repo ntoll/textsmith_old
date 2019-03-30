@@ -1,0 +1,186 @@
+{
+  "e7a78252-6507-444a-a40e-09d63ef7757c": {
+    "description": "The janitor for this world.",
+    "_meta": {
+      "alias": [],
+      "uuid": "e7a78252-6507-444a-a40e-09d63ef7757c",
+      "name": "janitor",
+      "fqn": "janitor/janitor",
+      "owner": "e7a78252-6507-444a-a40e-09d63ef7757c",
+      "typeof": "user",
+      "public": true,
+      "location": null,
+      "inventory": [],
+      "owns": [
+        "e7a78252-6507-444a-a40e-09d63ef7757c",
+        "78c06acf-090a-4a64-974a-6139eb0dc3d8"
+      ],
+      "fqns": [
+        "janitor/janitor",
+        "janitor/WelcomeRoom"
+      ],
+      "password": "b5ee0490e3f3e8edd966614db9c1a0508ee2ebf3dcd30e152e8817eca533e7cce46cdc40f7f4d25bc0ba4ffd8ae25fa81a7f59f9fbc6a451c1d8848e1f1f7c1d96fade88b79d5cd34ca1027eb0abb99afc4a4d733956e418ee0e3752b511b4e1",
+      "email": "",
+      "created_on": 1553888675.745774,
+      "last_login": null,
+      "superuser": true
+    }
+  },
+  "78c06acf-090a-4a64-974a-6139eb0dc3d8": {
+    "description": "Welcome to our world!\n\nThis is a room in an interactive textual adventure.\n\nThere's not much to see here at the moment. Why not build something? If you're\nthe janitor, you could update this description to something more fun!\n",
+    "_meta": {
+      "alias": [],
+      "uuid": "78c06acf-090a-4a64-974a-6139eb0dc3d8",
+      "name": "WelcomeRoom",
+      "fqn": "janitor/WelcomeRoom",
+      "owner": "e7a78252-6507-444a-a40e-09d63ef7757c",
+      "typeof": "room",
+      "public": true,
+      "contents": [
+        "3b973c26-9775-492d-89f7-d218b747526f",
+        "bc802a93-6af8-4dcf-a9b1-f3f4941bc735"
+      ],
+      "fqns": [
+        "testuser/testuser",
+        "ntoll/ntoll"
+      ],
+      "exits_out": [
+        "b403bbaa-9a35-44c0-9ef8-8bd61d2edde7"
+      ],
+      "exits_in": [
+        "b1fafee1-cc61-4c43-bf6f-cfe7417e5787"
+      ],
+      "allow": [],
+      "exclude": [],
+      "default_room": true
+    }
+  },
+  "bc802a93-6af8-4dcf-a9b1-f3f4941bc735": {
+    "description": "blah",
+    "_meta": {
+      "alias": [],
+      "uuid": "bc802a93-6af8-4dcf-a9b1-f3f4941bc735",
+      "name": "ntoll",
+      "fqn": "ntoll/ntoll",
+      "owner": "bc802a93-6af8-4dcf-a9b1-f3f4941bc735",
+      "typeof": "user",
+      "public": true,
+      "location": "78c06acf-090a-4a64-974a-6139eb0dc3d8",
+      "inventory": [
+        "36438b8a-b4f2-493f-98eb-19d255c8e710"
+      ],
+      "owns": [
+        "bc802a93-6af8-4dcf-a9b1-f3f4941bc735",
+        "36438b8a-b4f2-493f-98eb-19d255c8e710",
+        "42e9817b-889a-4df9-a214-c8c136590904",
+        "b403bbaa-9a35-44c0-9ef8-8bd61d2edde7",
+        "b1fafee1-cc61-4c43-bf6f-cfe7417e5787"
+      ],
+      "fqns": [
+        "ntoll/ntoll",
+        "ntoll/tuba",
+        "ntoll/shop",
+        "ntoll/shop1",
+        "ntoll/home"
+      ],
+      "password": "4cf09788f7db6adc3d176d7480650219478accd74de6b3a2bdbaaf16df78c0cbbf23c9608a18f1dedbeef1da8dcd72d7ad3631f2c4018ca131c272c1476853a81280aa589d98bc8c0cf362d25de23d0b7fb10d08a433036d0ed0f033b2446a70",
+      "email": "no-email",
+      "created_on": 1553888687.452392,
+      "last_login": 1553909873.8375716,
+      "superuser": false
+    }
+  },
+  "3b973c26-9775-492d-89f7-d218b747526f": {
+    "description": "A test",
+    "_meta": {
+      "alias": [],
+      "uuid": "3b973c26-9775-492d-89f7-d218b747526f",
+      "name": "testuser",
+      "fqn": "testuser/testuser",
+      "owner": "3b973c26-9775-492d-89f7-d218b747526f",
+      "typeof": "user",
+      "public": true,
+      "location": "78c06acf-090a-4a64-974a-6139eb0dc3d8",
+      "inventory": [],
+      "owns": [
+        "3b973c26-9775-492d-89f7-d218b747526f"
+      ],
+      "fqns": [
+        "testuser/testuser"
+      ],
+      "password": "e451b221a19601201e8ca5a4905285455b01e5182554f87d4f306a8689a681180202ff4d46723586b7e9941d37aa716e2d51c5be89b4cc14b6e4f94bb0005ec86bb234da599d2544b9be8e8b60e3a359f641b6abf3be42f2bc460ca729f64a84",
+      "email": "no-email",
+      "created_on": 1553888713.8139503,
+      "last_login": null,
+      "superuser": false
+    }
+  },
+  "36438b8a-b4f2-493f-98eb-19d255c8e710": {
+    "description": "A big shiny tuba.",
+    "_meta": {
+      "alias": [],
+      "uuid": "36438b8a-b4f2-493f-98eb-19d255c8e710",
+      "name": "tuba",
+      "fqn": "ntoll/tuba",
+      "owner": "bc802a93-6af8-4dcf-a9b1-f3f4941bc735",
+      "typeof": "object",
+      "public": true
+    }
+  },
+  "42e9817b-889a-4df9-a214-c8c136590904": {
+    "description": "A big shop",
+    "_meta": {
+      "alias": [],
+      "uuid": "42e9817b-889a-4df9-a214-c8c136590904",
+      "name": "shop",
+      "fqn": "ntoll/shop",
+      "owner": "bc802a93-6af8-4dcf-a9b1-f3f4941bc735",
+      "typeof": "room",
+      "public": true,
+      "contents": [],
+      "fqns": [],
+      "exits_out": [
+        "b1fafee1-cc61-4c43-bf6f-cfe7417e5787"
+      ],
+      "exits_in": [
+        "b403bbaa-9a35-44c0-9ef8-8bd61d2edde7"
+      ],
+      "allow": [],
+      "exclude": []
+    }
+  },
+  "b403bbaa-9a35-44c0-9ef8-8bd61d2edde7": {
+    "description": "to the shops",
+    "_meta": {
+      "alias": [],
+      "uuid": "b403bbaa-9a35-44c0-9ef8-8bd61d2edde7",
+      "name": "shop1",
+      "fqn": "ntoll/shop1",
+      "owner": "bc802a93-6af8-4dcf-a9b1-f3f4941bc735",
+      "typeof": "exit",
+      "public": true,
+      "source": "78c06acf-090a-4a64-974a-6139eb0dc3d8",
+      "destination": "42e9817b-889a-4df9-a214-c8c136590904"
+    },
+    "leave_user": "You leave \"WelcomeRoom\" via \"shop1\".",
+    "leave_room": "{username} leaves for \"shop\" via \"shop1\".",
+    "arrive_room": "{username} arrives from \"WelcomeRoom\"."
+  },
+  "b1fafee1-cc61-4c43-bf6f-cfe7417e5787": {
+    "description": "Go home",
+    "_meta": {
+      "alias": [],
+      "uuid": "b1fafee1-cc61-4c43-bf6f-cfe7417e5787",
+      "name": "home",
+      "fqn": "ntoll/home",
+      "owner": "bc802a93-6af8-4dcf-a9b1-f3f4941bc735",
+      "typeof": "exit",
+      "public": true,
+      "source": "42e9817b-889a-4df9-a214-c8c136590904",
+      "destination": "78c06acf-090a-4a64-974a-6139eb0dc3d8"
+    },
+    "leave_user": "You leave \"shop\" via \"home\".",
+    "leave_room": "{username} leaves for \"WelcomeRoom\" via \"home\".",
+    "arrive_room": "{username} arrives from \"shop\"."
+  }
+}

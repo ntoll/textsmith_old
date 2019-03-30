@@ -4,7 +4,7 @@ Tests to ensure the database module works properly.
 import os
 import time
 from textsmith import database
-from textsmith.logic import add_object, add_user, make_uuid
+from textsmith.logic import add_object, add_user, add_room, make_uuid
 
 
 def setup_function():
@@ -24,6 +24,9 @@ def test_save_load_database():
     user_id = add_user("testuser", "a test user", "password",
                        "mail@example.com")
     user = database.OBJECTS[user_id]
+    room_id = add_room("roomname", "a test room", user)
+    room = database.OBJECTS[room_id]
+    room["_meta"]["default_room"] = True
     obj_id = add_object("testobject", "a test object", user)
     # Save the data!
     database.save_database(temp_file)
@@ -33,9 +36,11 @@ def test_save_load_database():
     # Load the data!
     database.load_database(temp_file)
     assert database.USERS["testuser"] == user_id
-    assert len(database.OBJECTS) == 2
+    assert len(database.OBJECTS) == 3
     assert user_id in database.OBJECTS
     assert obj_id in database.OBJECTS
+    assert room_id in database.OBJECTS
+    assert database.DEFAULT_ROOM == room["_meta"]["fqn"]
     # Delete the temporary file.
     os.remove(temp_file)
 

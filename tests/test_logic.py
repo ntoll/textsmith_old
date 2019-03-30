@@ -21,6 +21,7 @@ def setup_function():
     database.OBJECTS = {}
     database.USERS = {}
     database.CONNECTIONS = {}
+    database.DEFAULT_ROOM = ""
 
 
 def test_make_uuid():
@@ -311,6 +312,30 @@ def test_get_object_from_context_no_name():
     assert logic.get_object_from_context(None, room, user) == []
 
 
+def test_get_object_from_context_me():
+    """
+    If the passed in object is "me" return the user.
+    """
+    user_uuid = logic.add_user("username", "description", "password",
+                               "mail@example.com")
+    user = database.OBJECTS[user_uuid]
+    room_id = logic.add_room("roomname", "room description", user)
+    room = database.OBJECTS[room_id]
+    assert logic.get_object_from_context("me", room, user) == [user, ]
+
+
+def test_get_object_from_context_here():
+    """
+    If the passed in object is "here" return the room.
+    """
+    user_uuid = logic.add_user("username", "description", "password",
+                               "mail@example.com")
+    user = database.OBJECTS[user_uuid]
+    room_id = logic.add_room("roomname", "room description", user)
+    room = database.OBJECTS[room_id]
+    assert logic.get_object_from_context("here", room, user) == [room, ]
+
+
 def test_get_object_from_room_by_fqn():
     """
     Ensure objects with matching names or aliases are returned if they are
@@ -593,17 +618,19 @@ def test_delete_object_as_owner():
     assert obj["_meta"]["fqn"] not in database.FQNS
 
 
-def test_delete_room_does_not_exits():
+@pytest.mark.asyncio
+async def test_delete_room_does_not_exits():
     """
     It's not possible to delete a room that doesn't exist.
     """
     user_uuid = logic.add_user("username", "description", "password",
                                "mail@example.com")
     user = database.OBJECTS[user_uuid]
-    assert logic.delete_room(logic.make_uuid, user) is False
+    assert await logic.delete_room(logic.make_uuid, user) is False
 
 
-def test_delete_room_not_a_room():
+@pytest.mark.asyncio
+async def test_delete_room_not_a_room():
     """
     If the referenced object is NOT a room, DO NOT delete it.
     """
@@ -611,10 +638,11 @@ def test_delete_room_not_a_room():
                                "mail@example.com")
     user = database.OBJECTS[user_uuid]
     new_uuid = logic.add_object("objectname", "object description", user)
-    assert logic.delete_room(new_uuid, user) is False
+    assert await logic.delete_room(new_uuid, user) is False
 
 
-def test_delete_room_not_owner():
+@pytest.mark.asyncio
+async def test_delete_room_not_owner():
     """
     If the user isn't the owner of the room, they can't delete it.
     """
@@ -625,10 +653,11 @@ def test_delete_room_not_owner():
     otheruser_uuid = logic.add_user("otherusername", "description", "password",
                                     "mail@example.com")
     otheruser = database.OBJECTS[otheruser_uuid]
-    assert logic.delete_room(new_uuid, otheruser) is False
+    assert await logic.delete_room(new_uuid, otheruser) is False
 
 
-def test_delete_room_as_superuser():
+@pytest.mark.asyncio
+async def test_delete_room_as_superuser():
     """
     It's possible to delete the room if the user is a superuser.
     """
@@ -653,8 +682,9 @@ def test_delete_room_as_superuser():
     room = database.OBJECTS[new_uuid]
     room["_meta"]["contents"].append(obj_uuid)
     room["_meta"]["contents"].append(user_uuid)
+    database.DEFAULT_ROOM = database.OBJECTS[otherroom_uuid]["_meta"]["fqn"]
     # Delete the room and check all the expected state.
-    assert logic.delete_room(new_uuid, otheruser) is True
+    assert await logic.delete_room(new_uuid, otheruser) is True
     assert new_uuid not in database.OBJECTS
     assert new_uuid not in user["_meta"]["owns"]
     assert room["_meta"]["fqn"] not in user["_meta"]["fqns"]
@@ -662,7 +692,7 @@ def test_delete_room_as_superuser():
     # Objects that were in the room, are now in their owners inventory.
     assert obj_uuid in user["_meta"]["inventory"]
     # Users who were in the room and now at the default "nowhere" location.
-    assert user["_meta"]["location"] is None
+    assert user["_meta"]["location"] is otherroom_uuid
     # Exits no longer exist.
     assert into not in database.OBJECTS
     assert outfrom not in database.OBJECTS
@@ -670,7 +700,8 @@ def test_delete_room_as_superuser():
     assert outfrom not in user["_meta"]["owns"]
 
 
-def test_delete_room_as_owner():
+@pytest.mark.asyncio
+async def test_delete_room_as_owner():
     """
     It's possible to delete the room if the user is the room's owner.
     """
@@ -694,16 +725,17 @@ def test_delete_room_as_owner():
     room = database.OBJECTS[new_uuid]
     room["_meta"]["contents"].append(obj_uuid)
     room["_meta"]["contents"].append(otheruser_uuid)
+    database.DEFAULT_ROOM = database.OBJECTS[otherroom_uuid]["_meta"]["fqn"]
     # Delete the room and check all the expected state.
-    assert logic.delete_room(new_uuid, user) is True
+    assert await logic.delete_room(new_uuid, user) is True
     assert new_uuid not in database.OBJECTS
     assert new_uuid not in user["_meta"]["owns"]
     assert room["_meta"]["fqn"] not in user["_meta"]["fqns"]
     assert room["_meta"]["fqn"] not in database.FQNS
     # Objects that were in the room, are now in their owners inventory.
     assert obj_uuid in user["_meta"]["inventory"]
-    # Users who were in the room and now at the default "nowhere" location.
-    assert otheruser["_meta"]["location"] is None
+    # Users who were in the room and now at the default room location.
+    assert otheruser["_meta"]["location"] is otherroom_uuid
     # Exits no longer exist.
     assert into not in database.OBJECTS
     assert outfrom not in database.OBJECTS
@@ -1374,7 +1406,7 @@ async def test_look_object():
         async with app.app_context():
             await logic.look(new_uuid, user)
         expected = ("## objectname\n\n"
-                    "[**username/objectname**]\n\n\n"
+                    "[*username/objectname*]\n\n\n"
                     "Alias: alias1, alias2\n\n\n"
                     "object description\n\n")
         mock_etu.assert_called_once_with(user_uuid, expected)
@@ -1402,11 +1434,11 @@ async def test_look_room():
         async with app.app_context():
             await logic.look(room_uuid, user)
         expected = ("## roomname\n\n"
-                    "[**username/roomname**]\n\n\n"
+                    "[*username/roomname*]\n\n\n"
                     "Alias: alias1, alias2\n\n\n"
-                    "room description\n\n\n"
-                    "**You can see**: username, objectname\n\n"
-                    "**Exits**: exitname\n")
+                    "room description\n\n\n    \n"
+                    "*You can see*: username, objectname\n    \n    \n"
+                    "*Exits*: exitname\n    \n")
         mock_etu.assert_called_once_with(user_uuid, expected)
 
 
@@ -1431,7 +1463,7 @@ async def test_look_exit():
         async with app.app_context():
             await logic.look(exit_id, user)
         expected = ("## exitname\n\n"
-                    "[**username/exitname**]\n\n\n"
+                    "[*username/exitname*]\n\n\n"
                     "Alias: alias1, alias2\n\n\n"
                     "exit description\n\n\n"
                     'This leads to "otherroomname".\n')
@@ -1453,7 +1485,7 @@ async def test_look_user():
         async with app.app_context():
             await logic.look(user_uuid, user)
         expected = ("## username\n\n"
-                    "[**username/username**]\n\n\n"
+                    "[*username/username*]\n\n\n"
                     "Alias: alias1, alias2\n\n\n"
                     "description\n\n\n"
                     "They are carrying: objectname\n")
@@ -1818,13 +1850,35 @@ async def test_emit_to_room_with_exclude():
 @pytest.mark.asyncio
 async def test_emit_to_user():
     """
-    Ensure the message is sent via the connection associated with the
+    Ensure the message is sent via the message bus associated with the
     referenced user_id.
     """
     user_uuid = logic.add_user("username", "description", "password",
-                               "mail@eample.com")
-    mock_ws = asynctest.MagicMock()
-    mock_ws.send = asynctest.CoroutineMock()
-    database.CONNECTIONS[user_uuid] = mock_ws
+                               "mail@example.com")
+    database.CONNECTIONS[user_uuid] = []
+    await logic.emit_to_user(user_uuid, "*hello*")
+    assert database.CONNECTIONS[user_uuid] == ["<p><em>hello</em></p>", ]
+
+
+@pytest.mark.asyncio
+async def test_emit_to_new_user():
+    """
+    Ensure the message is sent via a new message bus associated with the
+    previously unseen referenced user_id.
+    """
+    user_uuid = logic.add_user("username", "description", "password",
+                               "mail@example.com")
     await logic.emit_to_user(user_uuid, "hello")
-    mock_ws.send.assert_called_once_with("hello")
+    assert database.CONNECTIONS[user_uuid] == ["<p>hello</p>", ]
+
+
+@pytest.mark.asyncio
+async def test_emit_to_user_raw():
+    """
+    If the raw flag is set, the message isn't converted via Markdown.
+    """
+    user_uuid = logic.add_user("username", "description", "password",
+                               "mail@example.com")
+    database.CONNECTIONS[user_uuid] = []
+    await logic.emit_to_user(user_uuid, "<p>*hello*</p>", raw=True)
+    assert database.CONNECTIONS[user_uuid] == ["<p>*hello*</p>", ]

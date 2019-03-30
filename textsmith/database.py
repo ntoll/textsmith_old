@@ -24,6 +24,7 @@ FQNS = {}  # Key = fqn of object, Value = UUID for object.
 OBJECTS = {}  # All objects are a UUID referencing a dictionary.
 CONNECTIONS = {}  # Key = user's uuid, Value = an open websocket connect.
 DEFAULT_DATAFILE = "database.json"  # Where to dump the database.
+DEFAULT_ROOM = ""  # Where players in limbo get sent.
 
 
 def load_database(filename=DEFAULT_DATAFILE):
@@ -33,12 +34,17 @@ def load_database(filename=DEFAULT_DATAFILE):
     # Load the database.
     global OBJECTS
     global USERS
+    global DEFAULT_ROOM
+    global FQNS
     with open(filename, "r") as f:
         OBJECTS = json.load(f)
     # Update the USERS and FQNS convenience lookup tables.
     USERS = {}
     FQNS = {}
     for uuid, obj in OBJECTS.items():
+        default_room = obj["_meta"].get("default_room")
+        if default_room:
+            DEFAULT_ROOM = obj["_meta"]["fqn"]
         FQNS[obj["_meta"]["fqn"]] = obj["_meta"]["uuid"]
         if obj["_meta"]["typeof"] == "user":
             USERS[obj["_meta"]["name"]] = obj["_meta"]["uuid"]

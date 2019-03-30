@@ -1,21 +1,17 @@
 {% extends 'base.html' %}
 {% block content %}
 <section>
-    <p>Fill in the form below. We'll send you an email with a link to
-    set up your account.</p>
+    <p>Enter your username and password to connect.</p>
     {% if error %}
     <p style="color: red;">{{ error }}</p>
     {% endif %}
-    <form action="{{ url_for('signup') }}" method="post">
+    <form action="{{ url_for('login') }}" method="post">
         <p><label for="username">Username</label>:<br/>
         <input type="text" name="username" autofocus></p>
         <p><label for="password">Password</label>:<br/>
         <input type="password" name="password"></p>
-        <p><label for="confirm_password">Confirm Password</label>:<br/>
-        <input type="password" name="confirm_password"></p>
-        <p><label for="description">Character Description</label>:<br/>
-        <textarea name="description" rows="5" style="width: 50%;"></textarea></p>
         <p><input type="submit" value="Submit"></p>
     </form>
 </section>
 {% endblock %}
+
