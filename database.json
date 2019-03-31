@@ -13,21 +13,57 @@
       "inventory": [],
       "owns": [
         "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
-        "17aec0d2-9251-40a2-a3d9-2113c619e339"
+        "17aec0d2-9251-40a2-a3d9-2113c619e339",
+        "21ff9444-ad3d-49a4-88a4-440594c826a7",
+        "35459f11-0088-4b27-8147-95901aa5be53",
+        "9d221515-c17b-486b-a8a8-84813ead8106",
+        "991cd082-e4f3-4671-84df-5087038a60db",
+        "074e17d6-22c4-4bff-ac19-f1f8fef546e4",
+        "e629af7a-3d2c-4a00-8081-5a726fbb0fce",
+        "862e83b3-34bb-4d50-b039-dde8de1f3380",
+        "67a1e746-6c9e-4550-87b2-0c86520fefdb",
+        "d44cc227-d4f4-4050-a0a7-d97bc9431152",
+        "5915cfb5-4c25-425e-af2c-df4018f7947f",
+        "522a93fc-eda0-4c63-a293-48e9c3957c3d",
+        "b2570a3e-3019-4e80-88a5-3cdb68ec91d3",
+        "a7d0eb67-d824-41fa-8ef3-bae6429b7cdf",
+        "ba7a46d9-6406-412f-89a0-26fa92971609",
+        "b3ea69a4-10d5-44b2-9bb3-c59f23fbbad1",
+        "1c617caf-e89c-4b32-a238-1bb1caa52ba3",
+        "9f349648-23ae-4bf2-997e-0ac59a0749b9",
+        "81ec43c7-8593-4180-9bb8-a70c6baefdcc"
       ],
       "fqns": [
         "janitor/janitor",
-        "janitor/WelcomeRoom"
+        "janitor/WelcomeRoom",
+        "janitor/PoeticPassions",
+        "janitor/poetic",
+        "janitor/home",
+        "janitor/Austen",
+        "janitor/austen",
+        "janitor/homeroom",
+        "janitor/HardboiledDetectives",
+        "janitor/hardboiled",
+        "janitor/welcome",
+        "janitor/FantasyWorld",
+        "janitor/fantasy",
+        "janitor/welcomeroom",
+        "janitor/StarshipBridge",
+        "janitor/scifi",
+        "janitor/beamdown",
+        "janitor/PlatformTenAndAQuarter",
+        "janitor/wizardschool",
+        "janitor/tothemuggles"
       ],
       "password": "13bb5bbecdf5e0e839d982d2df7049bd2b7bd2eccbd436e25d3a2b1afd40dd310c066fc6a4b3a7f54f70ada1939efd0f85f5be292a3d358f21433dc11fd4b9f075990180de64e192565108fb8bfa37aa3f8623f6066c4bd8895a1d5a8a93d802",
       "email": "",
       "created_on": 1553989549.7613025,
-      "last_login": 1553991819.4330647,
+      "last_login": 1554041803.5175285,
       "superuser": true
     }
   },
   "17aec0d2-9251-40a2-a3d9-2113c619e339": {
-    "description": "Welcome to our world!\n\nThis is a multi-user interactive textual adventure. All the content and activity is created by the connected players. This world was created as an entry for [PyWeek 27](http://pyweek.org/), where the theme of \"6\" was given for participants to work with. Our response is an interactive textual platform containing six different literary worlds which we'll collaboratively create, inhabit and explore together..!\n\nIf you want to learn more about how to use this platform, why not ask for \"help\"?",
+    "description": "Welcome to our world!\n\nThis is a multi-user interactive textual adventure. All the content and activity is created by the connected players. This world was created as an entry for [PyWeek 27](http://pyweek.org/), where the theme of \"6\" was given for participants to work with. Our response is an interactive textual platform containing six different literary worlds which we'll collaboratively create, inhabit and explore together..!\n\nCurrently the six literary worlds are:\n\n* Jane Austen: Recreate Netherfield, go to a ball, affect regency period manners and etiquette.\n* Poetic Passions: Everything is a poem, haiku or rhymes, speak in riddles or chat in rhyming couplets.\n* Hardboiled Detectives: It was about eleven o'clock in the morning, with the sun not shining. The client asked, \"Well, will you take the case or not, bud?\"\n* J.R.R.Fantasy: Orcs! Elves! Wizards! Bleak locations! Ancient mystery! Quests! (And impenetrable prose.)\n* SciFi and Future Worlds: As the service droids efficiently cleaned up the remains of the ship's captain, I wondered how long it would take to make planet-fall on alien world of Zaonce.\n* Parry Hotter: Inspired by everyone's favourite boy wizard, but in such a way that Warner Brothers don't go after us for copyright infringement. :-)\n\nJust type the name of the exit to follow it on an adventure. Feeling bored? Why not build something?\n\nIf you want to learn more about how to use this platform, why not ask for \"help\"?",
     "_meta": {
       "alias": [],
       "uuid": "17aec0d2-9251-40a2-a3d9-2113c619e339",
@@ -37,17 +73,31 @@
       "typeof": "room",
       "public": true,
       "contents": [
-        "ab47115a-6ea9-45fe-b2b7-48e568117569",
+        "154d7617-47ad-4e04-9a42-bef124d34318",
         "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
-        "154d7617-47ad-4e04-9a42-bef124d34318"
+        "ab47115a-6ea9-45fe-b2b7-48e568117569"
       ],
       "fqns": [
-        "Nicholas/Nicholas",
+        "Nicholas/television",
         "janitor/janitor",
-        "Nicholas/television"
+        "Nicholas/Nicholas"
       ],
-      "exits_out": [],
-      "exits_in": [],
+      "exits_out": [
+        "35459f11-0088-4b27-8147-95901aa5be53",
+        "074e17d6-22c4-4bff-ac19-f1f8fef546e4",
+        "67a1e746-6c9e-4550-87b2-0c86520fefdb",
+        "522a93fc-eda0-4c63-a293-48e9c3957c3d",
+        "ba7a46d9-6406-412f-89a0-26fa92971609",
+        "9f349648-23ae-4bf2-997e-0ac59a0749b9"
+      ],
+      "exits_in": [
+        "9d221515-c17b-486b-a8a8-84813ead8106",
+        "e629af7a-3d2c-4a00-8081-5a726fbb0fce",
+        "d44cc227-d4f4-4050-a0a7-d97bc9431152",
+        "b2570a3e-3019-4e80-88a5-3cdb68ec91d3",
+        "b3ea69a4-10d5-44b2-9bb3-c59f23fbbad1",
+        "81ec43c7-8593-4180-9bb8-a70c6baefdcc"
+      ],
       "allow": [],
       "exclude": [],
       "default_room": true
@@ -64,19 +114,31 @@
       "typeof": "user",
       "public": true,
       "location": "17aec0d2-9251-40a2-a3d9-2113c619e339",
-      "inventory": [],
+      "inventory": [
+        "2fc466f6-9ac0-460a-9180-1abc8085a73a"
+      ],
       "owns": [
         "ab47115a-6ea9-45fe-b2b7-48e568117569",
-        "154d7617-47ad-4e04-9a42-bef124d34318"
+        "154d7617-47ad-4e04-9a42-bef124d34318",
+        "2fc466f6-9ac0-460a-9180-1abc8085a73a",
+        "3709b241-736a-4705-9f57-119f8e2ea4fe",
+        "866ec7a3-fb25-4830-abe5-c784b865d0fe",
+        "0d677ac5-57ad-4688-8e58-52dc64295c9f",
+        "78d2ee56-d8dd-4906-b2ef-875fbb258561"
       ],
       "fqns": [
         "Nicholas/Nicholas",
-        "Nicholas/television"
+        "Nicholas/television",
+        "Nicholas/Tuba",
+        "Nicholas/TheSanctuary",
+        "Nicholas/sanctuary",
+        "Nicholas/porch",
+        "Nicholas/haiku"
       ],
       "password": "1ad01e6ef36315fffef8facc3193a342be11c0bbd64688c844517506a91dccd5a6dc85424dc4056c097c52f7cf5a214f8c0b1b2c10f9d084b93f08a9a8281b6f8b3d10e3393b07777d9babd2e09ad17113ee3bb26913ccc860ba9ed6bd6c8245",
       "email": "no-email",
       "created_on": 1553989683.6177986,
-      "last_login": 1553992314.4653258,
+      "last_login": 1554039093.9552038,
       "superuser": false
     }
   },
@@ -90,6 +152,431 @@
       "owner": "ab47115a-6ea9-45fe-b2b7-48e568117569",
       "typeof": "object",
       "public": true
+    },
+    "watch": "You watch the TV programme:\n\nhttps://www.youtube.com/watch?v=paPhd2uCoKI\n"
+  },
+  "2fc466f6-9ac0-460a-9180-1abc8085a73a": {
+    "description": "A large brass instrument covered in scratches and small dents.",
+    "_meta": {
+      "alias": [],
+      "uuid": "2fc466f6-9ac0-460a-9180-1abc8085a73a",
+      "name": "Tuba",
+      "fqn": "Nicholas/Tuba",
+      "owner": "ab47115a-6ea9-45fe-b2b7-48e568117569",
+      "typeof": "object",
+      "public": true
+    },
+    "play": "You play the tuba. It sounds nice."
+  },
+  "21ff9444-ad3d-49a4-88a4-440594c826a7": {
+    "description": "Everything is a poem, haiku or rhymes, speak in riddles or chat in rhyming couplets.\n\nThere once was a coder called Nick, Who, with his mate Andrew, did stick, Some code in the cloud, For people who vowed, A literary bent's fantastic.\n\nThis code was a virtual space, For 6 worlds to exist in a place, Of lit'ry dimensions And creative inventions, For folks to explore and embrace.\n\nThis world you are in is poetic, With a rhyming and rhythmic aesthetic, All objects must be, Rhymed, meter'd or Haiku-ey, With couplets for talking frenetic.\n\nDear friend please don't give up and go, It's easy to write poems, you know... Just think of a theme, Work up self esteem, And deliver your words like a pro!\n\nSo make virtual spaces for sound, Of poetry going round and round, Each room is a verse, And need not be terse, For our love of words is common ground.",
+    "_meta": {
+      "alias": [],
+      "uuid": "21ff9444-ad3d-49a4-88a4-440594c826a7",
+      "name": "PoeticPassions",
+      "fqn": "janitor/PoeticPassions",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "room",
+      "public": true,
+      "contents": [
+        "78d2ee56-d8dd-4906-b2ef-875fbb258561"
+      ],
+      "fqns": [
+        "Nicholas/haiku"
+      ],
+      "exits_out": [
+        "9d221515-c17b-486b-a8a8-84813ead8106"
+      ],
+      "exits_in": [
+        "35459f11-0088-4b27-8147-95901aa5be53"
+      ],
+      "allow": [],
+      "exclude": []
     }
+  },
+  "35459f11-0088-4b27-8147-95901aa5be53": {
+    "description": "A line of rhyme to poetic adventures.",
+    "_meta": {
+      "alias": [],
+      "uuid": "35459f11-0088-4b27-8147-95901aa5be53",
+      "name": "poetic",
+      "fqn": "janitor/poetic",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "exit",
+      "public": true,
+      "source": "17aec0d2-9251-40a2-a3d9-2113c619e339",
+      "destination": "21ff9444-ad3d-49a4-88a4-440594c826a7"
+    },
+    "leave_user": "You leave \"WelcomeRoom\" via \"poetic\".",
+    "leave_room": "{username} leaves for \"PoeticPassions\" via \"poetic\".",
+    "arrive_room": "{username} arrives from \"WelcomeRoom\"."
+  },
+  "9d221515-c17b-486b-a8a8-84813ead8106": {
+    "description": "Return to the home room.",
+    "_meta": {
+      "alias": [],
+      "uuid": "9d221515-c17b-486b-a8a8-84813ead8106",
+      "name": "home",
+      "fqn": "janitor/home",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "exit",
+      "public": true,
+      "source": "21ff9444-ad3d-49a4-88a4-440594c826a7",
+      "destination": "17aec0d2-9251-40a2-a3d9-2113c619e339"
+    },
+    "leave_user": "You leave \"PoeticPassions\" via \"home\".",
+    "leave_room": "{username} leaves for \"WelcomeRoom\" via \"home\".",
+    "arrive_room": "{username} arrives from \"PoeticPassions\"."
+  },
+  "991cd082-e4f3-4671-84df-5087038a60db": {
+    "description": "It is a truth universally acknowledged, that a multi-user text based game in possession of a good theme, must be in want of a location.\n\nIn the valley front of you is situated a park that is very large, and contains a great variety of ground. At its lowest point is a beautiful wood stretching over a wide extent. Situated on the opposite side of the valley, is a large, handsome stone building, standing well on rising ground, and backed by a ridge of high woody hills; and in front, a stream of some natural importance is swelled but without any artificial appearance. Its banks are neither formal nor falsely adorned. You have never seen a place for which nature has done more, or where natural beauty has been so little counteracted by an awkward taste. You feel warm in admiration and wonder how one might apply to see the place in greater detail.\n",
+    "_meta": {
+      "alias": [],
+      "uuid": "991cd082-e4f3-4671-84df-5087038a60db",
+      "name": "Austen",
+      "fqn": "janitor/Austen",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "room",
+      "public": true,
+      "contents": [],
+      "fqns": [],
+      "exits_out": [
+        "e629af7a-3d2c-4a00-8081-5a726fbb0fce"
+      ],
+      "exits_in": [
+        "074e17d6-22c4-4bff-ac19-f1f8fef546e4"
+      ],
+      "allow": [],
+      "exclude": []
+    }
+  },
+  "074e17d6-22c4-4bff-ac19-f1f8fef546e4": {
+    "description": "To a Regency realm.",
+    "_meta": {
+      "alias": [],
+      "uuid": "074e17d6-22c4-4bff-ac19-f1f8fef546e4",
+      "name": "austen",
+      "fqn": "janitor/austen",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "exit",
+      "public": true,
+      "source": "17aec0d2-9251-40a2-a3d9-2113c619e339",
+      "destination": "991cd082-e4f3-4671-84df-5087038a60db"
+    },
+    "leave_user": "You leave \"WelcomeRoom\" via \"austen\".",
+    "leave_room": "{username} leaves for \"Austen\" via \"austen\".",
+    "arrive_room": "{username} arrives from \"WelcomeRoom\"."
+  },
+  "e629af7a-3d2c-4a00-8081-5a726fbb0fce": {
+    "description": "Return to the Welcome room.",
+    "_meta": {
+      "alias": [],
+      "uuid": "e629af7a-3d2c-4a00-8081-5a726fbb0fce",
+      "name": "homeroom",
+      "fqn": "janitor/homeroom",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "exit",
+      "public": true,
+      "source": "991cd082-e4f3-4671-84df-5087038a60db",
+      "destination": "17aec0d2-9251-40a2-a3d9-2113c619e339"
+    },
+    "leave_user": "You leave \"Austen\" via \"homeroom\".",
+    "leave_room": "{username} leaves for \"WelcomeRoom\" via \"homeroom\".",
+    "arrive_room": "{username} arrives from \"Austen\"."
+  },
+  "862e83b3-34bb-4d50-b039-dde8de1f3380": {
+    "description": "This room is too big, the ceiling is too high, the doors are too tall, and the white carpet that goes from wall to wall looks like a fresh fall of snow at Lake Arrowhead. There are full-length mirrors and crystal doodads all over the place. The ivory furniture has chromium on it, and the enormous ivory drapes are tumbled on the white carpet a yard from the windows. The white makes the ivory look dirty and the ivory makes the white look bled out. The windows stare towards the darkening foothills. It looks like it's going to rain soon. There is pressure in the air already.",
+    "_meta": {
+      "alias": [],
+      "uuid": "862e83b3-34bb-4d50-b039-dde8de1f3380",
+      "name": "HardboiledDetectives",
+      "fqn": "janitor/HardboiledDetectives",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "room",
+      "public": true,
+      "contents": [],
+      "fqns": [],
+      "exits_out": [
+        "d44cc227-d4f4-4050-a0a7-d97bc9431152"
+      ],
+      "exits_in": [
+        "67a1e746-6c9e-4550-87b2-0c86520fefdb"
+      ],
+      "allow": [],
+      "exclude": []
+    }
+  },
+  "67a1e746-6c9e-4550-87b2-0c86520fefdb": {
+    "description": "Step into a world of 1930s detective pulp fiction...",
+    "_meta": {
+      "alias": [],
+      "uuid": "67a1e746-6c9e-4550-87b2-0c86520fefdb",
+      "name": "hardboiled",
+      "fqn": "janitor/hardboiled",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "exit",
+      "public": true,
+      "source": "17aec0d2-9251-40a2-a3d9-2113c619e339",
+      "destination": "862e83b3-34bb-4d50-b039-dde8de1f3380"
+    },
+    "leave_user": "You leave \"WelcomeRoom\" via \"hardboiled\".",
+    "leave_room": "{username} leaves for \"HardboiledDetectives\" via \"hardboiled\".",
+    "arrive_room": "{username} arrives from \"WelcomeRoom\"."
+  },
+  "d44cc227-d4f4-4050-a0a7-d97bc9431152": {
+    "description": "Back to the WelcomeRoom",
+    "_meta": {
+      "alias": [],
+      "uuid": "d44cc227-d4f4-4050-a0a7-d97bc9431152",
+      "name": "welcome",
+      "fqn": "janitor/welcome",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "exit",
+      "public": true,
+      "source": "862e83b3-34bb-4d50-b039-dde8de1f3380",
+      "destination": "17aec0d2-9251-40a2-a3d9-2113c619e339"
+    },
+    "leave_user": "You leave \"HardboiledDetectives\" via \"welcome\".",
+    "leave_room": "{username} leaves for \"WelcomeRoom\" via \"welcome\".",
+    "arrive_room": "{username} arrives from \"HardboiledDetectives\"."
+  },
+  "5915cfb5-4c25-425e-af2c-df4018f7947f": {
+    "description": "You find yourself in a porch looking over a wide valley bound by huge snow capped mountains. The valley contains a great mist covered forest with sunlight reflecting on a wide river that flows through the heart of the woods and thence to the sea.\n\nBehind you are steps leading up to a richly carved door, leading into the sanctuary of the elves.",
+    "_meta": {
+      "alias": [],
+      "uuid": "5915cfb5-4c25-425e-af2c-df4018f7947f",
+      "name": "FantasyWorld",
+      "fqn": "janitor/FantasyWorld",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "room",
+      "public": true,
+      "contents": [],
+      "fqns": [],
+      "exits_out": [
+        "b2570a3e-3019-4e80-88a5-3cdb68ec91d3",
+        "866ec7a3-fb25-4830-abe5-c784b865d0fe"
+      ],
+      "exits_in": [
+        "522a93fc-eda0-4c63-a293-48e9c3957c3d",
+        "0d677ac5-57ad-4688-8e58-52dc64295c9f"
+      ],
+      "allow": [],
+      "exclude": []
+    }
+  },
+  "522a93fc-eda0-4c63-a293-48e9c3957c3d": {
+    "description": "Step into a world of fantasy",
+    "_meta": {
+      "alias": [],
+      "uuid": "522a93fc-eda0-4c63-a293-48e9c3957c3d",
+      "name": "fantasy",
+      "fqn": "janitor/fantasy",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "exit",
+      "public": true,
+      "source": "17aec0d2-9251-40a2-a3d9-2113c619e339",
+      "destination": "5915cfb5-4c25-425e-af2c-df4018f7947f"
+    },
+    "leave_user": "You leave \"WelcomeRoom\" via \"fantasy\".",
+    "leave_room": "{username} leaves for \"FantasyWorld\" via \"fantasy\".",
+    "arrive_room": "{username} arrives from \"WelcomeRoom\"."
+  },
+  "b2570a3e-3019-4e80-88a5-3cdb68ec91d3": {
+    "description": "Back to the welcome room.",
+    "_meta": {
+      "alias": [],
+      "uuid": "b2570a3e-3019-4e80-88a5-3cdb68ec91d3",
+      "name": "welcomeroom",
+      "fqn": "janitor/welcomeroom",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "exit",
+      "public": true,
+      "source": "5915cfb5-4c25-425e-af2c-df4018f7947f",
+      "destination": "17aec0d2-9251-40a2-a3d9-2113c619e339"
+    },
+    "leave_user": "You leave \"FantasyWorld\" via \"welcomeroom\".",
+    "leave_room": "{username} leaves for \"WelcomeRoom\" via \"welcomeroom\".",
+    "arrive_room": "{username} arrives from \"FantasyWorld\"."
+  },
+  "a7d0eb67-d824-41fa-8ef3-bae6429b7cdf": {
+    "description": "You find yourself in the bridge of your star ship: The USS Archetype.\n\nAround you are blinking control panels and computer readouts spewing data.\n\n::audio[Bridge Sounds](https://www.trekcore.com/audio/background/tng_bridge_1.mp3)",
+    "_meta": {
+      "alias": [],
+      "uuid": "a7d0eb67-d824-41fa-8ef3-bae6429b7cdf",
+      "name": "StarshipBridge",
+      "fqn": "janitor/StarshipBridge",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "room",
+      "public": true,
+      "contents": [],
+      "fqns": [],
+      "exits_out": [
+        "b3ea69a4-10d5-44b2-9bb3-c59f23fbbad1"
+      ],
+      "exits_in": [
+        "ba7a46d9-6406-412f-89a0-26fa92971609"
+      ],
+      "allow": [],
+      "exclude": []
+    }
+  },
+  "ba7a46d9-6406-412f-89a0-26fa92971609": {
+    "description": "Beam me up, Scotty!",
+    "_meta": {
+      "alias": [],
+      "uuid": "ba7a46d9-6406-412f-89a0-26fa92971609",
+      "name": "scifi",
+      "fqn": "janitor/scifi",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "exit",
+      "public": true,
+      "source": "17aec0d2-9251-40a2-a3d9-2113c619e339",
+      "destination": "a7d0eb67-d824-41fa-8ef3-bae6429b7cdf"
+    },
+    "leave_user": "You leave \"WelcomeRoom\" via \"scifi\".",
+    "leave_room": "{username} leaves for \"StarshipBridge\" via \"scifi\".",
+    "arrive_room": "{username} arrives from \"WelcomeRoom\"."
+  },
+  "b3ea69a4-10d5-44b2-9bb3-c59f23fbbad1": {
+    "description": "Return to the Welcome Room",
+    "_meta": {
+      "alias": [],
+      "uuid": "b3ea69a4-10d5-44b2-9bb3-c59f23fbbad1",
+      "name": "beamdown",
+      "fqn": "janitor/beamdown",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "exit",
+      "public": true,
+      "source": "a7d0eb67-d824-41fa-8ef3-bae6429b7cdf",
+      "destination": "17aec0d2-9251-40a2-a3d9-2113c619e339"
+    },
+    "leave_user": "You leave \"StarshipBridge\" via \"beamdown\".",
+    "leave_room": "{username} leaves for \"WelcomeRoom\" via \"beamdown\".",
+    "arrive_room": "{username} arrives from \"StarshipBridge\"."
+  },
+  "1c617caf-e89c-4b32-a238-1bb1caa52ba3": {
+    "description": "You find yourself on a deserted platform at Kings Cross station in London, England.\n\nIn front of you is an ancient looking steam locomotive connected to a long train of carriages.",
+    "_meta": {
+      "alias": [],
+      "uuid": "1c617caf-e89c-4b32-a238-1bb1caa52ba3",
+      "name": "PlatformTenAndAQuarter",
+      "fqn": "janitor/PlatformTenAndAQuarter",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "room",
+      "public": true,
+      "contents": [],
+      "fqns": [],
+      "exits_out": [
+        "81ec43c7-8593-4180-9bb8-a70c6baefdcc"
+      ],
+      "exits_in": [
+        "9f349648-23ae-4bf2-997e-0ac59a0749b9"
+      ],
+      "allow": [],
+      "exclude": []
+    }
+  },
+  "9f349648-23ae-4bf2-997e-0ac59a0749b9": {
+    "description": "Fancy a game of Quidditch?",
+    "_meta": {
+      "alias": [],
+      "uuid": "9f349648-23ae-4bf2-997e-0ac59a0749b9",
+      "name": "wizardschool",
+      "fqn": "janitor/wizardschool",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "exit",
+      "public": true,
+      "source": "17aec0d2-9251-40a2-a3d9-2113c619e339",
+      "destination": "1c617caf-e89c-4b32-a238-1bb1caa52ba3"
+    },
+    "leave_user": "You leave \"WelcomeRoom\" via \"wizardschool\".",
+    "leave_room": "{username} leaves for \"PlatformTenAndAQuarter\" via \"wizardschool\".",
+    "arrive_room": "{username} arrives from \"WelcomeRoom\"."
+  },
+  "81ec43c7-8593-4180-9bb8-a70c6baefdcc": {
+    "description": "Back to the welcome room.",
+    "_meta": {
+      "alias": [],
+      "uuid": "81ec43c7-8593-4180-9bb8-a70c6baefdcc",
+      "name": "tothemuggles",
+      "fqn": "janitor/tothemuggles",
+      "owner": "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+      "typeof": "exit",
+      "public": true,
+      "source": "1c617caf-e89c-4b32-a238-1bb1caa52ba3",
+      "destination": "17aec0d2-9251-40a2-a3d9-2113c619e339"
+    },
+    "leave_user": "You leave \"PlatformTenAndAQuarter\" via \"tothemuggles\".",
+    "leave_room": "{username} leaves for \"WelcomeRoom\" via \"tothemuggles\".",
+    "arrive_room": "{username} arrives from \"PlatformTenAndAQuarter\"."
+  },
+  "3709b241-736a-4705-9f57-119f8e2ea4fe": {
+    "description": "You find yourself in a large stone hall. Thick pillars loom up to a high ceilinged roof made from ancient timbers. Light floods in through a huge stained glass rose window.\n\n![alt text](/static/img/window.jpg)\n\nFrom afar, you discern the sounds of an ancient song which adds to the sacred feel of this place.\n\n::audio[Singing](/static/music/bingen.mp3)\n\nOpposite the rose window is an arch containing two large wooden doors which lead down some steps to a porch.",
+    "_meta": {
+      "alias": [],
+      "uuid": "3709b241-736a-4705-9f57-119f8e2ea4fe",
+      "name": "TheSanctuary",
+      "fqn": "Nicholas/TheSanctuary",
+      "owner": "ab47115a-6ea9-45fe-b2b7-48e568117569",
+      "typeof": "room",
+      "public": true,
+      "contents": [],
+      "fqns": [],
+      "exits_out": [
+        "0d677ac5-57ad-4688-8e58-52dc64295c9f"
+      ],
+      "exits_in": [
+        "866ec7a3-fb25-4830-abe5-c784b865d0fe"
+      ],
+      "allow": [],
+      "exclude": []
+    }
+  },
+  "866ec7a3-fb25-4830-abe5-c784b865d0fe": {
+    "description": "Walk up the steps.",
+    "_meta": {
+      "alias": [],
+      "uuid": "866ec7a3-fb25-4830-abe5-c784b865d0fe",
+      "name": "sanctuary",
+      "fqn": "Nicholas/sanctuary",
+      "owner": "ab47115a-6ea9-45fe-b2b7-48e568117569",
+      "typeof": "exit",
+      "public": true,
+      "source": "5915cfb5-4c25-425e-af2c-df4018f7947f",
+      "destination": "3709b241-736a-4705-9f57-119f8e2ea4fe"
+    },
+    "leave_user": "You leave \"FantasyWorld\" via \"sanctuary\".",
+    "leave_room": "{username} leaves for \"TheSanctuary\" via \"sanctuary\".",
+    "arrive_room": "{username} arrives from \"FantasyWorld\"."
+  },
+  "0d677ac5-57ad-4688-8e58-52dc64295c9f": {
+    "description": "Walk down the steps to the porch.",
+    "_meta": {
+      "alias": [],
+      "uuid": "0d677ac5-57ad-4688-8e58-52dc64295c9f",
+      "name": "porch",
+      "fqn": "Nicholas/porch",
+      "owner": "ab47115a-6ea9-45fe-b2b7-48e568117569",
+      "typeof": "exit",
+      "public": true,
+      "source": "3709b241-736a-4705-9f57-119f8e2ea4fe",
+      "destination": "5915cfb5-4c25-425e-af2c-df4018f7947f"
+    },
+    "leave_user": "You leave \"TheSanctuary\" via \"porch\".",
+    "leave_room": "{username} leaves for \"FantasyWorld\" via \"porch\".",
+    "arrive_room": "{username} arrives from \"TheSanctuary\"."
+  },
+  "78d2ee56-d8dd-4906-b2ef-875fbb258561": {
+    "description": "A virtual haiku,\nLeft here for you to ponder,\nIs this game much fun?\n\n:-)",
+    "_meta": {
+      "alias": [],
+      "uuid": "78d2ee56-d8dd-4906-b2ef-875fbb258561",
+      "name": "haiku",
+      "fqn": "Nicholas/haiku",
+      "owner": "ab47115a-6ea9-45fe-b2b7-48e568117569",
+      "typeof": "object",
+      "public": true
+    },
+    "read": "A virtual haiku, Left here for you to ponder, Is this game much fun?\n\n:-)"
   }
 }

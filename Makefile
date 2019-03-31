@@ -22,8 +22,8 @@ run: clean
 ifeq ($(VIRTUAL_ENV),)
     @echo "\n\nCannot run Mu. Your Python virtualenv is not activated."
 else
-	@echo "\nRunning on http://0.0.0.0:5000/ over http (CTRL + C to quit).\n"
-	heroku local web
+	@echo "\nRunning on http://0.0.0.0:8000/ over http (CTRL + C to quit).\n"
+	hypercorn textsmith.app:app	
 endif
 
 pyflakes:
