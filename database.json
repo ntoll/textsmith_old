@@ -22,12 +22,12 @@
       "password": "13bb5bbecdf5e0e839d982d2df7049bd2b7bd2eccbd436e25d3a2b1afd40dd310c066fc6a4b3a7f54f70ada1939efd0f85f5be292a3d358f21433dc11fd4b9f075990180de64e192565108fb8bfa37aa3f8623f6066c4bd8895a1d5a8a93d802",
       "email": "",
       "created_on": 1553989549.7613025,
-      "last_login": 1553989822.7069156,
+      "last_login": 1553991819.4330647,
       "superuser": true
     }
   },
   "17aec0d2-9251-40a2-a3d9-2113c619e339": {
-    "description": "Welcome to our world!\n\nThis is a room in an interactive textual adventure.\n\nThere's not much to see here at the moment. Why not build something? If you're\nthe janitor, you could update this description to something more fun!\n",
+    "description": "Welcome to our world!\n\nThis is a multi-user interactive textual adventure. All the content and activity is created by the connected players. This world was created as an entry for [PyWeek 27](http://pyweek.org/), where the theme of \"6\" was given for participants to work with. Our response is an interactive textual platform containing six different literary worlds which we'll collaboratively create, inhabit and explore together..!\n\nIf you want to learn more about how to use this platform, why not ask for \"help\"?",
     "_meta": {
       "alias": [],
       "uuid": "17aec0d2-9251-40a2-a3d9-2113c619e339",
@@ -38,11 +38,13 @@
       "public": true,
       "contents": [
         "ab47115a-6ea9-45fe-b2b7-48e568117569",
-        "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9"
+        "4a5c3495-6a4f-4fe8-9e1f-ed643d2c18b9",
+        "154d7617-47ad-4e04-9a42-bef124d34318"
       ],
       "fqns": [
         "Nicholas/Nicholas",
-        "janitor/janitor"
+        "janitor/janitor",
+        "Nicholas/television"
       ],
       "exits_out": [],
       "exits_in": [],
@@ -64,16 +66,30 @@
       "location": "17aec0d2-9251-40a2-a3d9-2113c619e339",
       "inventory": [],
       "owns": [
-        "ab47115a-6ea9-45fe-b2b7-48e568117569"
+        "ab47115a-6ea9-45fe-b2b7-48e568117569",
+        "154d7617-47ad-4e04-9a42-bef124d34318"
       ],
       "fqns": [
-        "Nicholas/Nicholas"
+        "Nicholas/Nicholas",
+        "Nicholas/television"
       ],
       "password": "1ad01e6ef36315fffef8facc3193a342be11c0bbd64688c844517506a91dccd5a6dc85424dc4056c097c52f7cf5a214f8c0b1b2c10f9d084b93f08a9a8281b6f8b3d10e3393b07777d9babd2e09ad17113ee3bb26913ccc860ba9ed6bd6c8245",
       "email": "no-email",
       "created_on": 1553989683.6177986,
-      "last_login": 1553989707.249346,
+      "last_login": 1553992314.4653258,
       "superuser": false
+    }
+  },
+  "154d7617-47ad-4e04-9a42-bef124d34318": {
+    "description": "An old fashioned TV set with an out-of-shape aerial stuck on top. It appears to be playing an old computer generated video logo from the 1990s.\n\nhttps://www.youtube.com/watch?v=paPhd2uCoKI\n\n",
+    "_meta": {
+      "alias": [],
+      "uuid": "154d7617-47ad-4e04-9a42-bef124d34318",
+      "name": "television",
+      "fqn": "Nicholas/television",
+      "owner": "ab47115a-6ea9-45fe-b2b7-48e568117569",
+      "typeof": "object",
+      "public": true
     }
   }
 }

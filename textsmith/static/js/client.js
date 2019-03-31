@@ -47,7 +47,7 @@ $(document).ready(function(){
         $(".output").append(data);
         // Ensure all links outside of this site open in a new browser tab.
         $(document.links).filter(function() {
-            return this.hostname != window.location.hostname;
+            return true;
         }).attr('target', '_blank');
         // Scroll to the bottom of the page.
         var element = document.getElementById("send");
