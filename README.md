@@ -14,7 +14,7 @@ The run the game:
 If the `make` command doesn't work, try the following command from the shell:
 `hypercorn textsmith.app:app`.
 
-The game database (`database.json` is dumped once every minute while the server
+The game database (`database.json`) is dumped once every minute while the server
 is running.
 
 This is very much a FIRST DRAFT and all feedback is most welcome..!
